@@ -1,0 +1,21 @@
+# ============================================================
+#  SWFE837 – FreeRADIUS users (TP2)
+#  Base d'utilisateurs de test pour EAP-TLS
+#  En EAP-TLS, l'authentification repose sur les certificats ;
+#  ce fichier permet de vérifier la correspondance CN ↔ compte.
+# ============================================================
+
+# Compte étudiant 1 (CN du certificat client = "etudiant1")
+etudiant1   Cleartext-Password := "labo2026"
+            Reply-Message = "Bienvenue, etudiant1 !"
+
+# Compte étudiant 2
+etudiant2   Cleartext-Password := "labo2026"
+            Reply-Message = "Bienvenue, etudiant2 !"
+
+# Compte test (pour radtest uniquement, sans certificat)
+testuser    Cleartext-Password := "testpass"
+
+# DEFAULT – rejeter tout le reste
+DEFAULT     Auth-Type := Reject
+            Reply-Message = "Accès refusé"

