@@ -143,6 +143,9 @@ else
   success "Certificats déjà présents"
 fi
 
+mkdir -p /tmp/wpa_supplicant_labo
+success "Répertoire de contrôle client créé"
+
 # ── Marqueur ──────────────────────────────────────────────────
 echo "SWFE837_LABO_OK_$(date +%Y%m%d)" > "$LABO_DIR/.labo_status"
 success "Marqueur de labo créé"
