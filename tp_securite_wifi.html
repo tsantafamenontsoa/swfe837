@@ -436,19 +436,7 @@ wlan0: AP-STA-CONNECTED 02:00:00:00:01:00</div>
                             <p class="small text-muted">Tous les éléments suivants s'exécutent dans le <strong>Terminal 3</strong> (rôle attaquant, interface <code>wlan2</code>). Les terminaux 1 et 2 doivent rester ouverts.</p>
                             <ul class="step-list">
 
-                                <li class="step-item">
-                                    <div class="step-num">B1</div>
-                                    <div class="step-body">
-                                        <h6>Tuer les processus qui bloquent l'interface</h6>
-                                        <p>NetworkManager utilise parfois <code>wlan2</code>. On le libère sans toucher aux terminaux 1 et 2.</p>
-                                        <pre>sudo airmon-ng check kill</pre>
-                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Killing these processes:
-  PID Name
-  953 wpa_supplicant
-  871 NetworkManager</div>
-                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Cette commande coupe aussi wpa_supplicant sur wlan1. Retournez dans le Terminal 2 et relancez la connexion client si nécessaire : <code>sudo systemctl stop NetworkManager wpa_supplicant; sudo pkill -9 wpa_supplicant; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1</code> puis relancez : <code>sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-wpa2-tp1.conf</div>
-                                    </div>
-                                </li>
+                                
 
                                 <li class="step-item">
                                     <div class="step-num">B2</div>
@@ -1001,6 +989,37 @@ wlan1: CTRL-EVENT-EAP-FAILURE</div>
                                 </li>
 
                             </ul>
+<div class="step-info" style="margin-top:12px;">
+    <i class="fas fa-lightbulb me-1"></i>
+    <strong>Comportement attendu :</strong> Votre client <strong>ne basculera pas</strong> automatiquement vers le Rogue AP, car il est déjà associé à l’AP légitime. Cependant, si vous forcez un scan ou une déconnexion, il refusera toute association avec l’imposteur – la ligne <code>SSL: Certificate verification failed</code> apparaîtra dans le terminal wpa_supplicant. C’est la preuve que <code>ca_cert</code> bloque l’Evil Twin.
+</div>
+
+<div class="section-sub">Partie E (bonus) — Vérification du nom du serveur</div>
+<div class="theory-box">
+    <h6><i class="fas fa-id-card me-2"></i>Pourquoi regarder le CN ?</h6>
+    <p>En plus de vérifier la chaîne de certification (<code>ca_cert</code>), wpa_supplicant peut contrôler le <strong>nom de domaine</strong> présenté par le serveur RADIUS (paramètre <code>domain_match</code> ou <code>domain_suffix_match</code>). Cela empêche un attaquant disposant d’un certificat signé par une CA publique d’usurper le service. Regardons ce qui se trouve dans le certificat de notre labo.</p>
+</div>
+<ul class="step-list">
+    <li class="step-item">
+        <div class="step-num">E1</div>
+        <div class="step-body">
+            <h6>Inspecter le certificat serveur</h6>
+            <p>Ouvrez un terminal et exécutez :</p>
+            <pre>openssl x509 -in /opt/swfe837/certs/server.pem -text -noout | grep "Subject:"</pre>
+            <div class="step-output"><span class="step-output-label">Exemple de sortie</span>Subject: C = FR, ST = Paris, O = SWFE837 Lab, CN = radius.labo.local</div>
+            <p>Le <strong>CN</strong> (Common Name) est <code>radius.labo.local</code>. C’est ce nom que le client pourrait vérifier en production.</p>
+        </div>
+    </li>
+    <li class="step-item">
+        <div class="step-num">E2</div>
+        <div class="step-body">
+            <h6>Activer la vérification de domaine (optionnel)</h6>
+            <p>Dans votre <code>wpa_supplicant.conf</code>, vous pourriez ajouter :</p>
+            <pre>domain_match="radius.labo.local"</pre>
+            <p>Relancez wpa_supplicant : la connexion ne réussira <strong>que si</strong> le CN correspond exactement. Testez avec une valeur incorrecte pour observer l’échec.</p>
+        </div>
+    </li>
+</ul>
 
                             <div class="checkpoint-box">
                                 <h6><i class="fas fa-check-circle me-2"></i>Critères de validation complets</h6>
@@ -1036,6 +1055,10 @@ wlan1: CTRL-EVENT-EAP-FAILURE</div>
                                     <div class="tr-prob">⚠ FreeRADIUS déjà en cours d'exécution</div>
                                     <div class="tr-sol"><code>sudo pkill freeradius</code> puis relancer avec <code>sudo freeradius -X</code>. Vérifiez aussi qu'aucun autre service ne tourne sur le port 1812 : <code>sudo ss -ulnp | grep 1812</code>.</div>
                                 </div>
+                                <div class="tr-item">
+    <div class="tr-prob">⚠ wpa_supplicant : "Domain mismatch"</div>
+    <div class="tr-sol">Vous avez activé <code>domain_match</code> dans la configuration, mais le CN du certificat serveur ne correspond pas. Vérifiez avec <code>openssl x509 -in /opt/swfe837/certs/server.pem -text -noout | grep Subject:</code> et corrigez la valeur.</div>
+</div>
                             </div>
 
                             <!-- ── Questions ── -->
