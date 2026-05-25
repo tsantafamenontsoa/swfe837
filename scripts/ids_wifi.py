@@ -17,7 +17,7 @@ from datetime import datetime
 
 try:
     from scapy.all import (
-        sniff, Dot11, Dot11Deauth, Dot11Disassoc,
+        sniff, Dot11, Dot11Deauth, Dot11Disas,
         Dot11Beacon, Dot11ProbeReq, Dot11Elt, conf
     )
     from colorama import init, Fore, Style
@@ -71,7 +71,7 @@ def handle_deauth(pkt):
     """Détecte les attaques par désauthentification massive."""
     src = pkt.addr2 or "??:??:??:??:??:??"
     dst = pkt.addr1 or "ff:ff:ff:ff:ff:ff"
-    reason = pkt[Dot11Deauth].reason if pkt.haslayer(Dot11Deauth) else "?"
+    reason = pkt[Dot11Deauth].reason if pkt.haslayer(Dot11Deauth) else (pkt[Dot11Disas].reason if pkt.haslayer(Dot11Disas) else "?")
     now = time.time()
 
     deauth_counter[src].append(now)
@@ -135,7 +135,7 @@ def packet_handler(pkt):
     """Dispatcher principal."""
     if not pkt.haslayer(Dot11):
         return
-    if pkt.haslayer(Dot11Deauth) or pkt.haslayer(Dot11Disassoc):
+    if pkt.haslayer(Dot11Deauth) or pkt.haslayer(Dot11Disas):
         handle_deauth(pkt)
     elif pkt.haslayer(Dot11Beacon):
         handle_beacon(pkt)
