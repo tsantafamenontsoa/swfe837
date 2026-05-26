@@ -1078,7 +1078,7 @@ wlan1: CTRL-EVENT-EAP-FAILURE</div>
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading3">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
-                            <i class="fas fa-user-secret me-2"></i> TP3 – Attaque Evil Twin &amp; durcissement (20mn)
+                            <i class="fas fa-user-secret me-2"></i> TP3 – Attaque Evil Twin &amp; durcissement (3h)
                         </button>
                     </h2>
                     <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#mainAccordion">
@@ -1490,8 +1490,9 @@ Accept: */*</div>
                             <!-- ── PARTIE E ── -->
                             <div class="section-sub">Partie E — Contre-mesure 802.11w (PMF)</div>
                             <div class="theory-box">
-                                <h6><i class="fas fa-shield-halved me-2"></i>Qu'est-ce que 802.11w change ?</h6>
+                                <h6><i class="fas fa-shield-halved me-2"></i>Qu'est-ce que 802.11w change — et ce qu'on oublie souvent</h6>
                                 <p>Avec PMF activé (<code>ieee80211w=2</code> dans hostapd), les trames de désauthentification sont protégées par un MIC (Message Integrity Code) dérivé de la clé de session. Un attaquant qui forge une trame de désauth sans connaître cette clé voit sa trame <strong>ignorée silencieusement</strong> par le client.</p>
+                                <p><strong>Point clé :</strong> PMF doit être activé <em>des deux côtés</em>. Si l'AP impose <code>ieee80211w=2</code> mais que le client ne déclare pas PMF dans sa config wpa_supplicant, le <strong>4-way handshake échoue</strong> et la connexion est refusée — l'AP et le client ne peuvent pas se connecter du tout.</p>
                             </div>
 
                             <ul class="step-list">
@@ -1499,42 +1500,75 @@ Accept: */*</div>
                                 <li class="step-item">
                                     <div class="step-num">E1</div>
                                     <div class="step-body">
-                                        <h6>Terminal 3 — Créer une config AP avec 802.11w activé</h6>
-                                        <pre>cp /opt/swfe837/configs/hostapd-wpa2-tp1.conf /tmp/hostapd-pmf.conf
-# Activer PMF obligatoire (2 = required)
-echo "ieee80211w=2" | sudo tee -a /tmp/hostapd-pmf.conf
-grep ieee80211w /tmp/hostapd-pmf.conf</pre>
+                                        <h6>Terminal 3 — Créer la config AP avec 802.11w activé</h6>
+                                        <p>On utilise <code>sudo bash -c</code> pour écrire dans <code>/opt/swfe837/configs/</code> en une seule commande — évite les problèmes de permissions sur <code>/tmp/</code>.</p>
+                                        <pre># Copier et ajouter PMF en une commande (permissions correctes)
+sudo bash -c 'cp /opt/swfe837/configs/hostapd-wpa2-tp1.conf /opt/swfe837/configs/hostapd-pmf.conf   &amp;&amp; echo "ieee80211w=2" >> /opt/swfe837/configs/hostapd-pmf.conf'
+
+# Vérifier
+grep ieee80211w /opt/swfe837/configs/hostapd-pmf.conf</pre>
                                         <div class="step-output"><span class="step-output-label">Sortie attendue</span>ieee80211w=2</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Ne pas utiliser <code>echo ... | sudo tee -a /tmp/hostapd-pmf.conf</code> — provoque une erreur de permission sur ce système. Ne pas utiliser <code>/tmp/</code> : préférer <code>/opt/swfe837/configs/</code>.</div>
                                     </div>
                                 </li>
 
                                 <li class="step-item">
                                     <div class="step-num">E2</div>
                                     <div class="step-body">
-                                        <h6>Terminal 1 — Relancer l'AP avec PMF activé</h6>
-                                        <pre># Couper le vieil AP
-sudo pkill hostapd
-
-# Relancer avec PMF
-sudo hostapd /tmp/hostapd-pmf.conf</pre>
+                                        <h6>Terminal 1 — Relancer l'AP avec PMF obligatoire</h6>
+                                        <pre>sudo pkill hostapd
+sudo hostapd /opt/swfe837/configs/hostapd-pmf.conf</pre>
                                         <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan0: interface state UNINITIALIZED->ENABLED
 wlan0: AP-ENABLED</div>
-                                        <p>Reconnectez le client (Terminal 2) :</p>
-                                        <pre>sudo pkill wpa_supplicant 2>/dev/null; sleep 1; sudo rm -rf /run/wpa_supplicant/wlan1
-sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-wpa2-tp1.conf</pre>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">E2b</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 3 — Créer la config client avec PMF</h6>
+                                        <p>Le client doit aussi déclarer <code>ieee80211w=2</code>. Sans cette ligne, wpa_supplicant refusera de se connecter à l'AP PMF et la Partie E ne fonctionnera pas.</p>
+                                        <pre>sudo bash -c 'cp /opt/swfe837/configs/wpa_supplicant-wpa2-tp1.conf   /opt/swfe837/configs/wpa_supplicant-pmf.conf'
+sudo sed -i "/key_mgmt=WPA-PSK/a\    ieee80211w=2"   /opt/swfe837/configs/wpa_supplicant-pmf.conf
+
+# Vérifier
+grep ieee80211w /opt/swfe837/configs/wpa_supplicant-pmf.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>    ieee80211w=2</div>
+                                    </div>
+                                </li>
+
+                                <li class="step-item">
+                                    <div class="step-num">E2c</div>
+                                    <div class="step-body">
+                                        <h6>Terminal 2 — Reconnecter le client avec la config PMF</h6>
+                                        <pre>sudo systemctl stop wpa_supplicant 2>/dev/null
+sudo pkill -9 wpa_supplicant 2>/dev/null; sleep 1
+sudo rm -rf /run/wpa_supplicant/wlan1
+sudo ip link set wlan1 up
+sudo wpa_supplicant -i wlan1 -c /opt/swfe837/configs/wpa_supplicant-pmf.conf</pre>
+                                        <div class="step-output"><span class="step-output-label">Sortie attendue</span>wlan1: Associated with 02:00:00:00:00:00
+wlan1: WPA: Key negotiation completed [PTK=CCMP GTK=CCMP]
+wlan1: CTRL-EVENT-CONNECTED - Connection to 02:00:00:00:00:00 completed</div>
+                                        <div class="step-warn"><i class="fas fa-exclamation-triangle me-1"></i> Si wpa_supplicant affiche <code>CTRL-EVENT-DISCONNECTED</code> immédiatement après la connexion, c'est que <code>ieee80211w=2</code> n'est pas dans le bloc <code>network{}</code> du fichier client. Vérifiez avec <code>grep ieee80211w /opt/swfe837/configs/wpa_supplicant-pmf.conf</code>.</div>
                                     </div>
                                 </li>
 
                                 <li class="step-item">
                                     <div class="step-num">E3</div>
                                     <div class="step-body">
-                                        <h6>Terminal 3 — Relancer l'attaque de désauth</h6>
-                                        <p>Même commande qu'en C2. Observez le Terminal 2 (wpa_supplicant) : avec 802.11w activé, le client <strong>ignore les trames forgées</strong> et reste connecté.</p>
-                                        <pre>sudo airmon-ng start wlan2
-sudo aireplay-ng -0 10 -a [BSSID_AP] -c [MAC_CLIENT] wlan2mon</pre>
-                                        <div class="step-output"><span class="step-output-label">Terminal 2 — avec 802.11w : le client reste connecté</span>wlan1: CTRL-EVENT-CONNECTED   ← toujours connecté, pas de DISCONNECTED</div>
-                                        <div class="step-output"><span class="step-output-label">Terminal 2 — sans 802.11w (référence TP C2)</span>wlan1: CTRL-EVENT-DISCONNECTED bssid=02:00:00:00:00:00 reason=7</div>
-                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Conclusion :</strong> avec <code>ieee80211w=2</code>, la désauthentification forgée est rejetée. Sans le client connecté à l'AP légitime, le Rogue AP ne peut pas être injecté — l'attaque Evil Twin est neutralisée à sa source.</div>
+                                        <h6>Terminal 3 — Relancer l'attaque de désauth avec wlan3mon</h6>
+                                        <p>On réutilise wlan3 en mode monitor (sans toucher à wlan2 qui peut héberger le Rogue AP). <strong>Ne pas lancer</strong> <code>airmon-ng check kill</code> — cela tuerait le client (Terminal 2).</p>
+                                        <pre># Passer wlan3 en monitor (si pas déjà fait)
+sudo airmon-ng start wlan3
+
+# Forcer le canal de l'AP (obligatoire)
+sudo iw dev wlan3mon set channel 6
+
+# Lancer le deauth flood
+sudo aireplay-ng -0 10 -a [BSSID_AP] -c [MAC_CLIENT] wlan3mon</pre>
+                                        <div class="step-output"><span class="step-output-label">Terminal 2 — avec 802.11w activé des deux côtés</span>wlan1: CTRL-EVENT-CONNECTED   ← toujours connecté, aucun DISCONNECTED</div>
+                                        <div class="step-output"><span class="step-output-label">Référence sans 802.11w (observé en C2)</span>wlan1: CTRL-EVENT-DISCONNECTED bssid=02:00:00:00:00:00 reason=7</div>
+                                        <div class="step-info"><i class="fas fa-info-circle me-1"></i> <strong>Conclusion :</strong> avec <code>ieee80211w=2</code> des deux côtés, les trames de désauth forgées sont ignorées par le client car elles ne sont pas signées par la clé de session négociée lors du 4-way handshake. L'attaque Evil Twin est neutralisée à sa source.</div>
                                     </div>
                                 </li>
 
@@ -1572,8 +1606,16 @@ sudo aireplay-ng -0 10 -a [BSSID_AP] -c [MAC_CLIENT] wlan2mon</pre>
                                     <div class="tr-sol">Le NAT n'est pas actif ou la règle iptables est absente. Vérifiez : <code>sudo iptables -t nat -L POSTROUTING</code>. Si vide, relancez les commandes de B3. Vérifiez aussi que le forwarding IP est actif : <code>cat /proc/sys/net/ipv4/ip_forward</code> doit retourner <code>1</code>.</div>
                                 </div>
                                 <div class="tr-item">
-                                    <div class="tr-prob">⚠ E3 : le client se déconnecte quand même avec ieee80211w=2</div>
-                                    <div class="tr-sol">wpa_supplicant-wpa2-tp1.conf ne déclare pas PMF côté client. Ajoutez <code>ieee80211w=2</code> dans le bloc <code>network{}</code> du fichier wpa_supplicant pour que le 4-way handshake négocie bien la protection PMF des deux côtés.</div>
+                                    <div class="tr-prob">⚠ Après E1 : le client ne se connecte plus à l'AP PMF</div>
+                                    <div class="tr-sol">L'AP impose <code>ieee80211w=2</code> mais le client ne l'a pas encore dans sa config. Suivez les étapes E2b et E2c : créer <code>wpa_supplicant-pmf.conf</code> avec <code>ieee80211w=2</code> et relancer wpa_supplicant avec cette config.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ E3 : aireplay-ng attend sur le mauvais canal</div>
+                                    <div class="tr-sol">Forcer le canal avant de lancer : <code>sudo iw dev wlan3mon set channel 6</code>. Sans cette commande, l'interface monitor reste sur le canal courant (souvent canal 1 ou 10) et n'entend pas les beacon de l'AP sur le canal 6.</div>
+                                </div>
+                                <div class="tr-item">
+                                    <div class="tr-prob">⚠ E3 : erreur "Permission denied" ou echo dans /tmp</div>
+                                    <div class="tr-sol">Toujours créer la config PMF dans <code>/opt/swfe837/configs/</code> avec <code>sudo bash -c 'cp ... &amp;&amp; echo ... >> ...'</code>. Les fichiers dans <code>/tmp/</code> créés par root peuvent être inaccessibles en écriture selon l'umask du système.</div>
                                 </div>
                             </div>
 
@@ -1603,11 +1645,11 @@ sudo aireplay-ng -0 10 -a [BSSID_AP] -c [MAC_CLIENT] wlan2mon</pre>
                     </div>
                 </div>
 
-                <!-- ══ TP4 ══ -->
+                 <!-- ══ TP4 ══ -->
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading4">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
-                            <i class="fas fa-radar me-2"></i> TP4 – Surveillance &amp; détection d'intrusion Wi‑Fi (10mn)
+                            <i class="fas fa-radar me-2"></i> TP4 – Surveillance &amp; détection d'intrusion Wi‑Fi (2h)
                         </button>
                     </h2>
                     <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4" data-bs-parent="#mainAccordion">
@@ -1616,18 +1658,6 @@ sudo aireplay-ng -0 10 -a [BSSID_AP] -c [MAC_CLIENT] wlan2mon</pre>
                             <div class="mission-card">
                                 <div class="mission-label"><i class="fas fa-eye me-1"></i> Mission 4 · Ne plus jamais rater une attaque</div>
                                 <p>L'attaque contre Nexellia a duré <strong>3 semaines avant d'être détectée</strong>, uniquement grâce à un audit externe. Votre mission : déployer un IDS Wi-Fi qui détecte en temps réel les attaques des TP1 et TP3, et génère des alertes exploitables par l'équipe interne.</p>
-                            </div>
-
-                            <div class="prereq-box">
-                                <h6><i class="fas fa-list-check me-2"></i>Prérequis</h6>
-                                <ul>
-                                    <li>TP3 terminé — snapshot <em>"Après_TP3"</em> créé, <code>sudo bash scripts/reset_labo.sh</code> exécuté</li>
-                                    <li>4 interfaces disponibles : <code>iw dev</code> liste wlan0, wlan1, wlan2, wlan3</li>
-                                    <li>Script IDS présent : <code>ls scripts/ids_wifi.py</code></li>
-                                    <li>Scapy fonctionnel : <code>python3 -c "from scapy.all import Dot11Deauth, Dot11Disas; print('OK')"</code></li>
-                                    <li>Si erreur scapy : <code>sudo apt install python3-scapy python3-colorama</code></li>
-                                    <li>wlan3 disponible pour le mode monitor (non utilisé par le Rogue AP)</li>
-                                </ul>
                             </div>
 
                             <h5>Objectifs</h5>
@@ -1721,15 +1751,8 @@ sniff(iface="wlan3mon", prn=detect_deauth)</pre>
                     </div>
                 </div>
 
-                <!-- ══ ÉVALUATION ══ -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading5">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
-                            <i class="fas fa-clipboard-check me-2"></i> Évaluation continue &amp; portfolio
-                        </button>
-                    </h2>
-                    <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="heading5" data-bs-parent="#mainAccordion">
-                        <div class="accordion-body">
+
+                       <div class="accordion-body">
                             <h5>Rapport de mission Nexellia</h5>
                             <p>En fin de module, vous remettez à la DSI de Nexellia un <strong>rapport de mission complet</strong> qui démontre votre maîtrise des techniques d'attaque et de défense.</p>
                             <h6>Contrôle continu</h6>
@@ -1749,7 +1772,6 @@ sniff(iface="wlan3mon", prn=detect_deauth)</pre>
                             <p class="mt-3"><i class="fas fa-link"></i> Ces éléments peuvent être valorisés dans le MSPR global.</p>
                         </div>
                     </div>
-                </div>
 
 
             <div class="footer-note">
